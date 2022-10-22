@@ -69,6 +69,34 @@ public class EternalFileSystemManager
         return default;
     }
 
+    public EternalFileSystemFatEntry CreateDirectory(in ReadOnlySpan<byte> directoryName, EternalFileSystemFatEntry directoryEntry)
+    {
+        using Stream fsStream = _fileSystem.GetStream();
+
+        if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newEntry))
+            throw new OutOfMemoryException();
+
+        using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
+
+        byte entriesCount = (byte)stream.ReadByte();
+
+        for (int i = 0; i < entriesCount; i++)
+            stream.MarshalReadStructure<EternalFileSystemEntry>();
+
+        EternalFileSystemEntry entry = new(directoryName, newEntry);
+        stream.MarshalWriteStructure(entry);
+
+        using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newEntry);
+
+        newDirectoryStream.WriteByte(2);
+        newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newEntry));
+        newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.ParentDirectory(), directoryEntry));
+
+        OverwriteEntriesCount(directoryEntry);
+
+        return newEntry;
+    }
+    
     public EternalFileSystemFatEntry CreateFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
     {
         using Stream fsStream = _fileSystem.GetStream();
@@ -105,34 +133,6 @@ public class EternalFileSystemManager
         return currentEntry;
     }
 
-    public EternalFileSystemFatEntry CreateDirectory(in ReadOnlySpan<byte> directoryName, EternalFileSystemFatEntry directoryEntry)
-    {
-        using Stream fsStream = _fileSystem.GetStream();
-
-        if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newEntry))
-            throw new OutOfMemoryException();
-
-        using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
-
-        byte entriesCount = (byte)stream.ReadByte();
-
-        for (int i = 0; i < entriesCount; i++)
-            stream.MarshalReadStructure<EternalFileSystemEntry>();
-
-        EternalFileSystemEntry entry = new(directoryName, newEntry);
-        stream.MarshalWriteStructure(entry);
-
-        using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newEntry);
-
-        newDirectoryStream.WriteByte(2);
-        newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newEntry));
-        newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.ParentDirectory(), directoryEntry));
-
-        OverwriteEntriesCount(directoryEntry);
-
-        return newEntry;
-    }
-
     public void WriteToFile(in ReadOnlySpan<byte> content, EternalFileSystemFatEntry fileEntry, EternalFileSystemFatEntry directoryEntry)
     {
         using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry))
@@ -165,12 +165,9 @@ public class EternalFileSystemManager
 
     private void OverwriteEntriesCount(EternalFileSystemFatEntry directoryEntry)
     {
-        // TODO: handle seek
-        EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
+        using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
         byte entriesCount = (byte)stream.ReadByte();
-        stream.Dispose();
-        stream = new(_fileSystem, directoryEntry);
+        stream.Seek(0, SeekOrigin.Begin);
         stream.WriteByte((byte)(entriesCount + 1));
-        stream.Dispose();
     }
 }

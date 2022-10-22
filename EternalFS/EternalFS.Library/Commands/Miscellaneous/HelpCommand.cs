@@ -4,7 +4,7 @@
 [CommandDoc("Outputs a list of available commands with their documentation.")]
 public partial class HelpCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         foreach (var (command, info) in CommandManager.Commands)
         {

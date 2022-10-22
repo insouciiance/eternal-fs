@@ -10,7 +10,7 @@ namespace EternalFS.Library.Commands.Filesystem;
 [CommandDoc("Outputs the information about the filesystem being used.")]
 public partial class FsinfoCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         using Stream fsStream = context.FileSystem.GetStream();
         EternalFileSystemHeader header = fsStream.MarshalReadStructure<EternalFileSystemHeader>();

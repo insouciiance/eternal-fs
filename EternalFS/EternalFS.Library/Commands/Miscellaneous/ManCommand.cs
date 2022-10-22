@@ -8,7 +8,7 @@ namespace EternalFS.Library.Commands.Miscellaneous;
 [CommandDoc("Searches the documentation for the given command.")]
 public partial class ManCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> commandSpan = context.ValueSpan.SplitIndex();
 

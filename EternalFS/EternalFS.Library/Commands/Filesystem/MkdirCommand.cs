@@ -9,7 +9,7 @@ namespace EternalFS.Library.Commands.Filesystem;
 [CommandDoc("Creates an empty directory with the given name.")]
 public partial class MkdirCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
 

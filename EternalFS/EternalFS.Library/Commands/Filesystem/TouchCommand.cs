@@ -9,7 +9,7 @@ namespace EternalFS.Library.Commands.Filesystem;
 [CommandDoc("Creates an empty file with the given name.")]
 public partial class TouchCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
 

@@ -13,7 +13,7 @@ public partial class EchoCommand
     [ByteSpan(" > ")]
     private static partial ReadOnlySpan<byte> GetDelimiter();
 
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> content = context.ValueSpan.SplitIndex(GetDelimiter());
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex(GetDelimiter(), 1);

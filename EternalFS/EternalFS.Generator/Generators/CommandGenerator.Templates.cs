@@ -26,13 +26,14 @@ public partial class CommandGenerator
 
         return $@"
 using EternalFS.Library.Commands;
+using EternalFS.Library.Utils;
 
 namespace {command.ContainingNamespace};
 
 /// <summary>
 /// {commandSummary}
 /// </summary>
-partial {GetTypeKindString(command)} {commandDeclarationName} : ICommand
+partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{commandDeclarationName}>, ICommand
 {{
     static string ICommand.Name => ""{commandName}"";
 }}
@@ -110,7 +111,7 @@ internal static partial class {commandManagerTypeName}
 
             string commandDeclarationName = command.ToDisplayString(nameDisplayFormat);
 
-            return $@"            {GetCommandSwitchCase(command)} => {commandDeclarationName}.Execute(ref context),";
+            return $@"            {GetCommandSwitchCase(command)} => {commandDeclarationName}.Instance.Execute(ref context),";
         }
 
         static string GetCommandSwitchCase(INamedTypeSymbol command)

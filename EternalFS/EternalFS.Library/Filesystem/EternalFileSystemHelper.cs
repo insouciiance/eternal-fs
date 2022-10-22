@@ -1,12 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using EternalFS.Library.Extensions;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem;
 
 public static class EternalFileSystemHelper
 {
+    public static bool TryLocateSubEntry(
+        EternalFileSystem fileSystem,
+        EternalFileSystemFatEntry directory,
+        in ReadOnlySpan<byte> subEntryName,
+        out EternalFileSystemEntry entry)
+    {
+        using EternalFileSystemFileStream stream = new(fileSystem, directory);
+
+        byte entriesCount = (byte)stream.ReadByte();
+
+        for (int i = 0; i < entriesCount; i++)
+        {
+            var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
+
+            if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(subEntryName))
+            {
+                entry = currentEntry;
+                return true;
+            }
+        }
+
+        entry = default;
+        return false;
+    }
+    
     public static bool TryAllocateNewFatEntry(EternalFileSystem fileSystem, out EternalFileSystemFatEntry entry)
     {
         HashSet<EternalFileSystemFatEntry> occupiedEntries = new() { EternalFileSystem.RootDirectoryEntry };

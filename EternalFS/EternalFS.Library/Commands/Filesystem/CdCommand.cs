@@ -10,7 +10,7 @@ namespace EternalFS.Library.Commands.Filesystem;
 [CommandDoc("Changes the current working directory.")]
 public partial class CdCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
 

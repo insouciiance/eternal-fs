@@ -6,7 +6,7 @@ namespace EternalFS.Library.Commands.Miscellaneous;
 [CommandDoc("Outputs the current date and time.")]
 public partial class TimeCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         context.Writer.WriteLine(DateTime.Now.ToString());
         return new();

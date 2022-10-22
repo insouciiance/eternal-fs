@@ -9,7 +9,7 @@ namespace EternalFS.Library.Commands.Filesystem;
 [CommandDoc("Outputs the contents of a given file.")]
 public partial class CatCommand
 {
-    public static CommandExecutionResult Execute(ref CommandExecutionContext context)
+    public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
 
