@@ -13,17 +13,17 @@ public partial class ByteSpanGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var typesProvider = context.SyntaxProvider.CreateSyntaxProvider(
-            (node, _) => node is TypeDeclarationSyntax,
-            (syntax, _) =>
+            static (node, _) => node is TypeDeclarationSyntax,
+            static (syntax, _) =>
             {
                 var symbol = (INamedTypeSymbol)syntax.SemanticModel.GetDeclaredSymbol(syntax.Node)!;
                 return symbol.GetMembers().Any(m => m.HasAttribute<ByteSpanAttribute>()) ? symbol : null;
             })
-            .Where(s => s is not null)
+            .Where(static s => s is not null)
             .Collect()
-            .Select((symbols, _) => symbols.Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToImmutableArray());
+            .Select(static (symbols, _) => symbols.Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToImmutableArray());
 
-        context.RegisterSourceOutput(typesProvider, (context, types) =>
+        context.RegisterSourceOutput(typesProvider, static (context, types) =>
         {
             foreach (var type in types)
                 context.AddFileSource($"{type.Name}.g.cs", GenerateByteSpansForType(type));

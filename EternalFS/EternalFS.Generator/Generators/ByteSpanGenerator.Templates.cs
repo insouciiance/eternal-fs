@@ -11,7 +11,7 @@ namespace EternalFS.Generator.Generators;
 
 public partial class ByteSpanGenerator
 {
-    public static string GenerateByteSpansForType(INamedTypeSymbol type)
+    private static string GenerateByteSpansForType(INamedTypeSymbol type)
     {
         var byteSpanMethods = type.GetMembers().OfType<IMethodSymbol>().Where(m => m.HasAttribute<ByteSpanAttribute>());
 
@@ -25,7 +25,7 @@ namespace {type.ContainingNamespace};
 partial {GetTypeKindString(type)} {typeDeclarationName}
 {{
 {string.Join("\n\n", byteSpanMethods
-    .Select(m => GetByteSpanMethod(m)))}
+    .Select(GetByteSpanMethod))}
 }}
 ";
 
@@ -36,7 +36,7 @@ partial {GetTypeKindString(type)} {typeDeclarationName}
 
             return $@"
     /// <summary>
-    /// A <see cref=""ReadOnlySpan{{byte}}""> that is equal to the string ""<c>{value}</c>"".
+    /// A <see cref=""ReadOnlySpan{{T}}"" /> that is equal to the string ""<c>{value}</c>"".
     /// </summary>
     {GetAccessibility(method)} {Static(method)} partial ReadOnlySpan<byte> {method.Name}() => new byte[] {{ {GetSpanBytes()} }};".TrimStart('\n', '\r');
 

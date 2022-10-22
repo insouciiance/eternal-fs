@@ -19,6 +19,9 @@ public partial class CommandGenerator
         var commandAttribute = command.GetAttribute<CommandAttribute>()!;
         var commandName = (string)commandAttribute.ConstructorArguments[0].Value!;
         
+        var commandDocAttribute = command.GetAttribute<CommandDocAttribute>();
+        var commandSummary = (string?)commandDocAttribute?.ConstructorArguments[0].Value!;
+        
         string commandDeclarationName = command.ToDisplayString(CommonFormats.Declaration);
 
         return $@"
@@ -26,6 +29,9 @@ using EternalFS.Library.Commands;
 
 namespace {command.ContainingNamespace};
 
+/// <summary>
+/// {commandSummary}
+/// </summary>
 partial {GetTypeKindString(command)} {commandDeclarationName} : ICommand
 {{
     static string ICommand.Name => ""{commandName}"";
