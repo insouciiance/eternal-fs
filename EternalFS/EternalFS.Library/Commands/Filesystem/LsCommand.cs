@@ -19,7 +19,7 @@ public partial class LsCommand
         EternalFileSystemFatEntry currentDirectory = new EternalFileSystemManager(context.FileSystem).OpenDirectory(context.CurrentDirectory);
         using EternalFileSystemFileStream stream = new(context.FileSystem, currentDirectory);
 
-        byte entriesCount = (byte)stream.ReadByte();
+        int entriesCount = stream.MarshalReadStructure<int>();
 
         HashSet<EternalFileSystemEntry> subEntries = new();
 
@@ -61,7 +61,7 @@ public partial class LsCommand
                 StringBuilder builder = new();
                 
                 string fileName = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
-                builder.Append($"{fileName}/");
+                builder.Append(fileName);
                 
                 if (context.ValueSpan.Contains(LongList()))
                     builder.Append($" [{subEntry.Size}B]");

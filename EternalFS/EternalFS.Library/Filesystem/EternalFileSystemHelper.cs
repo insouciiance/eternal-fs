@@ -17,7 +17,7 @@ public static class EternalFileSystemHelper
     {
         using EternalFileSystemFileStream stream = new(fileSystem, directory);
 
-        byte entriesCount = (byte)stream.ReadByte();
+        int entriesCount = stream.MarshalReadStructure<int>();
 
         for (int i = 0; i < entriesCount; i++)
         {
@@ -56,13 +56,13 @@ public static class EternalFileSystemHelper
 
         void TraverseDirectory(EternalFileSystemFatEntry directoryEntry)
         {
-            using var directoryStream = new EternalFileSystemFileStream(fileSystem, directoryEntry);
+            using var stream = new EternalFileSystemFileStream(fileSystem, directoryEntry);
 
-            byte entriesCount = (byte)directoryStream.ReadByte();
+            int entriesCount = stream.MarshalReadStructure<int>();
 
             for (int i = 0; i < entriesCount; i++)
             {
-                var entry = directoryStream.MarshalReadStructure<EternalFileSystemEntry>();
+                var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
 
                 if (entry.IsDirectory && !occupiedEntries.Contains(entry.FatEntryReference))
                 {

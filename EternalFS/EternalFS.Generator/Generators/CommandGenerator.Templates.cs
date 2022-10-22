@@ -60,7 +60,7 @@ partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{comma
 
 internal static partial class {commandManagerTypeName}
 {{
-    private const int MAX_COMMAND_NAME_LENGTH = 128;
+    private const int MAX_COMMAND_LENGTH = 4096;
 
 {string.Join("\n\n", commands
     .Select(c => $"    private static ReadOnlySpan<byte> {GetCommandSpanName(c)} => new byte[] {{ {GetCommandSpanBytes(c)} }};"))}
@@ -71,7 +71,7 @@ internal static partial class {commandManagerTypeName}
         EternalFileSystem fileSystem,
         List<string> currentDirectory)
     {{
-        Span<byte> buffer = stackalloc byte[MAX_COMMAND_NAME_LENGTH];
+        Span<byte> buffer = new byte[MAX_COMMAND_LENGTH];
     
         source.Read(buffer);
 

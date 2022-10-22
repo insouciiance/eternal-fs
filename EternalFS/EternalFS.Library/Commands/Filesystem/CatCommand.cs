@@ -19,7 +19,7 @@ public partial class CatCommand
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry);
 
-        byte contentLength = (byte)stream.ReadByte();
+        int contentLength = stream.MarshalReadStructure<int>();
 
         byte[] content = new byte[contentLength];
         stream.Read(content, 0, content.Length);
