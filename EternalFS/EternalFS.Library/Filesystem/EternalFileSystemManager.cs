@@ -101,22 +101,24 @@ public class EternalFileSystemManager
     {
         using Stream fsStream = _fileSystem.GetStream();
 
-        EternalFileSystemFatEntry currentEntry;
+        EternalFileSystemFatEntry currentEntry = default;
 
-        fsStream.Seek(EternalFileSystemHeader.HeaderSize + 4, SeekOrigin.Begin);
-
-        HashSet<EternalFileSystemFatEntry> allocatedEntries = new() { EternalFileSystem.RootDirectoryEntry };
-
-        while ((currentEntry = fsStream.MarshalReadStructure<EternalFileSystemFatEntry>()) != EternalFileSystemMounter.EmptyCluster)
-            allocatedEntries.Add(currentEntry);
+        fsStream.Seek(EternalFileSystemHeader.HeaderSize, SeekOrigin.Begin);
 
         for (ushort i = 0; i < 0xFFFF; i++)
         {
-            currentEntry = new(i);
+            if (fsStream.MarshalReadStructure<EternalFileSystemFatEntry>() != EternalFileSystemMounter.EmptyCluster)
+                continue;
 
-            if (!allocatedEntries.Contains(currentEntry))
-                break;
+            currentEntry = i;
+            break;
         }
+
+        if (currentEntry == default)
+            throw new OutOfMemoryException();
+
+        fsStream.Seek(-Marshal.SizeOf<EternalFileSystemFatEntry>(), SeekOrigin.Current);
+        fsStream.MarshalWriteStructure(EternalFileSystemMounter.FatTerminator);
 
         using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
