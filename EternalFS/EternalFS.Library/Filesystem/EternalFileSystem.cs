@@ -4,7 +4,7 @@ namespace EternalFS.Library.Filesystem;
 
 public abstract class EternalFileSystem
 {
-    public const int CLUSTER_SIZE_BYTES = 1024;
+    public const int CLUSTER_SIZE_BYTES = 512;
 
     public const int FAT_ENTRY_SIZE_BYTES = 2;
 

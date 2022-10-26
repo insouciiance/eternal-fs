@@ -36,15 +36,17 @@ public static class EternalFileSystemHelper
     
     public static bool TryAllocateNewFatEntry(EternalFileSystem fileSystem, out EternalFileSystemFatEntry entry)
     {
-        HashSet<EternalFileSystemFatEntry> occupiedEntries = new() { EternalFileSystem.RootDirectoryEntry };
+        using Stream stream = fileSystem.GetStream();
 
-        TraverseDirectory(EternalFileSystem.RootDirectoryEntry);
+        stream.Seek(EternalFileSystemHeader.HeaderSize, SeekOrigin.Begin);
 
         ushort clustersCount = fileSystem.ClustersCount;
 
         for (ushort i = 0; i < clustersCount; i++)
         {
-            if (occupiedEntries.Contains(i))
+            entry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
+
+            if (entry != EternalFileSystemMounter.EmptyCluster)
                 continue;
 
             entry = i;
@@ -53,39 +55,5 @@ public static class EternalFileSystemHelper
 
         entry = default;
         return false;
-
-        void TraverseDirectory(EternalFileSystemFatEntry directoryEntry)
-        {
-            using var stream = new EternalFileSystemFileStream(fileSystem, directoryEntry);
-
-            int entriesCount = stream.MarshalReadStructure<int>();
-
-            for (int i = 0; i < entriesCount; i++)
-            {
-                var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
-
-                if (entry.IsDirectory && !occupiedEntries.Contains(entry.FatEntryReference))
-                {
-                    occupiedEntries.Add(entry.FatEntryReference);
-                    TraverseDirectory(entry.FatEntryReference);
-                    continue;
-                }
-
-                RecordFileChain(entry.FatEntryReference);
-            }
-
-            void RecordFileChain(EternalFileSystemFatEntry fileEntry)
-            {
-                occupiedEntries.Add(fileEntry);
-
-                Stream fsStream = fileSystem.GetStream();
-                fsStream.Seek(EternalFileSystemHeader.HeaderSize + 2 + Marshal.SizeOf<EternalFileSystemFatEntry>() * fileEntry, SeekOrigin.Begin);
-                var nextEntry = fsStream.MarshalReadStructure<EternalFileSystemFatEntry>();
-                fsStream.Dispose();
-
-                if (nextEntry != EternalFileSystemMounter.FatTerminator)
-                    RecordFileChain(nextEntry);
-            }
-        }
     }
 }

@@ -45,6 +45,7 @@ public class EternalFileSystemFileStream : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
+        int initialCount = count;
         int bytesRead = 0;
 
         do
@@ -54,10 +55,13 @@ public class EternalFileSystemFileStream : Stream
 
             bytesRead += _currentClusterIndex;
 
-            if (_currentClusterIndex == EternalFileSystem.CLUSTER_SIZE_BYTES - 1 && !TryEnterNextCluster())
+            offset = bytesRead;
+            count -= _currentClusterIndex;
+
+            if (_currentClusterIndex == EternalFileSystem.CLUSTER_SIZE_BYTES && !TryEnterNextCluster())
                 break;
 
-        } while (bytesRead < count);
+        } while (bytesRead < initialCount);
 
         return bytesRead;
     }
@@ -109,11 +113,11 @@ public class EternalFileSystemFileStream : Stream
 
             int initialPosition = clusterOffset + _currentClusterIndex;
             _fileSystemStream.Seek(initialPosition, SeekOrigin.Begin);
-            _fileSystemStream.Write(buffer, offset, count);
+            _fileSystemStream.Write(buffer, offset, Math.Min(count, EternalFileSystem.CLUSTER_SIZE_BYTES - _currentClusterIndex));
 
             _currentClusterIndex += (int)(_fileSystemStream.Position - initialPosition);
 
-            if (buffer.Length < i + EternalFileSystem.CLUSTER_SIZE_BYTES || !TryEnterNextCluster())
+            if (offset + count < i + EternalFileSystem.CLUSTER_SIZE_BYTES || !TryEnterNextCluster(true))
                 break;
 
             offset += EternalFileSystem.CLUSTER_SIZE_BYTES;
@@ -140,18 +144,25 @@ public class EternalFileSystemFileStream : Stream
         _fileSystemStream.Read(_currentCluster, 0, _currentCluster.Length);
     }
 
-    private bool TryEnterNextCluster(bool createNewCluster = false)
+    private unsafe bool TryEnterNextCluster(bool createNewCluster = false)
     {
         if (_fatEntries.Count == 0)
             return false;
 
         EternalFileSystemFatEntry entry = _fatEntries[^1];
+        EternalFileSystemFatEntry nextEntry;
 
-        if (entry == _fatTerminator && (!createNewCluster || !TryAllocateNewCluster(out entry)))
-            return false;
+        using Stream stream = _fileSystem.GetStream();
+        stream.Seek(GetFatEntryOffset(entry), SeekOrigin.Begin);
+        nextEntry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
 
-        _fileSystemStream.Seek(GetFatEntryOffset(entry), SeekOrigin.Begin);
-        EternalFileSystemFatEntry nextEntry = _fileSystemStream.MarshalReadStructure<EternalFileSystemFatEntry>();
+        if (nextEntry == _fatTerminator || nextEntry == EternalFileSystemMounter.EmptyCluster)
+        {
+            if (!createNewCluster || !TryAllocateNewCluster(out nextEntry))
+                return false;
+        }
+
+        _fileSystemStream.Seek(GetFatEntryOffset(nextEntry), SeekOrigin.Begin);
         _fatEntries.Add(nextEntry);
 
         InitCurrentCluster();
@@ -161,55 +172,32 @@ public class EternalFileSystemFileStream : Stream
 
     private int GetClusterOffset(EternalFileSystemFatEntry entry)
     {
-        return EternalFileSystemHeader.HeaderSize + 2 +
+        return EternalFileSystemHeader.HeaderSize +
             _fileSystem.ClustersCount * EternalFileSystem.FAT_ENTRY_SIZE_BYTES +
             entry * EternalFileSystem.CLUSTER_SIZE_BYTES;
     }
 
     private static int GetFatEntryOffset(EternalFileSystemFatEntry entry)
     {
-        return EternalFileSystemHeader.HeaderSize + 2 +
+        return EternalFileSystemHeader.HeaderSize +
             entry * EternalFileSystem.FAT_ENTRY_SIZE_BYTES;
     }
 
     private bool TryAllocateNewCluster(out EternalFileSystemFatEntry entry)
     {
-        EternalFileSystemFatEntry currentEntry;
-
-        _fileSystemStream.Seek(EternalFileSystemHeader.HeaderSize + 4, SeekOrigin.Begin);
-
-        HashSet<EternalFileSystemFatEntry> allocatedEntries = new();
-
-        while ((currentEntry = _fileSystemStream.MarshalReadStructure<EternalFileSystemFatEntry>()) != EternalFileSystemMounter.EmptyCluster)
-            allocatedEntries.Add(currentEntry);
-
-        if (allocatedEntries.Count == _fileSystem.ClustersCount)
+        if (EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out entry))
         {
-            entry = default;
-            return false; // TODO: handle out of memory
-        }
-
-        for (ushort i = 0; i < 0xFFFF; i++)
-        {
-            currentEntry = new(i);
-
-            if (allocatedEntries.Contains(currentEntry))
-                continue;
-
-            _fileSystemStream.Position -= 2;
-            _fileSystemStream.MarshalWriteStructure(currentEntry);
-
-            UpdateTailEntry();
-            entry = currentEntry;
+            UpdateTailEntry(entry);
+            WriteTerminator(entry);
             return true;
         }
 
         entry = default;
         return false; // we should never realistically reach this point
 
-        void UpdateTailEntry()
+        void UpdateTailEntry(in EternalFileSystemFatEntry entry)
         {
-            EternalFileSystemFatEntry tailEntry = _fatEntries[0];
+            EternalFileSystemFatEntry tailEntry = _fatEntries[^1];
 
             do
             {
@@ -219,7 +207,14 @@ public class EternalFileSystemFileStream : Stream
             } while (tailEntry != _fatTerminator);
 
             _fileSystemStream.Position -= 2;
-            _fileSystemStream.MarshalWriteStructure(currentEntry);
+            _fileSystemStream.MarshalWriteStructure(entry);
+        }
+
+        void WriteTerminator(in EternalFileSystemFatEntry entry)
+        {
+            int entryOffset = GetFatEntryOffset(entry);
+            _fileSystemStream.Seek(entryOffset, SeekOrigin.Begin);
+            _fileSystemStream.MarshalWriteStructure(EternalFileSystemMounter.FatTerminator);
         }
     }
 

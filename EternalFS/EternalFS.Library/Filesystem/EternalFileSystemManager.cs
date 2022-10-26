@@ -88,7 +88,7 @@ public class EternalFileSystemManager
 
         using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newEntry);
 
-        newDirectoryStream.WriteByte(2);
+        newDirectoryStream.MarshalWriteStructure(2);
         newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newEntry));
         newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.ParentDirectory(), directoryEntry));
 

@@ -11,6 +11,8 @@ public readonly struct EternalFileSystemEntry
 
     public readonly int Size;
 
+    public readonly long CreatedAt;
+
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
     public readonly byte[] SubEntryName;
 
@@ -26,6 +28,8 @@ public readonly struct EternalFileSystemEntry
     {
         IsDirectory = isDirectory;
         Size = size;
+
+        CreatedAt = DateTime.Now.Ticks;
 
         Span<byte> nameSpan = stackalloc byte[64];
         subEntryName.CopyTo(nameSpan);
