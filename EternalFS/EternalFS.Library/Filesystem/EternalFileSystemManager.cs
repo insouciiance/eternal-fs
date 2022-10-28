@@ -101,24 +101,10 @@ public class EternalFileSystemManager
     {
         using Stream fsStream = _fileSystem.GetStream();
 
-        EternalFileSystemFatEntry currentEntry = default;
-
         fsStream.Seek(EternalFileSystemHeader.HeaderSize, SeekOrigin.Begin);
 
-        for (ushort i = 0; i < 0xFFFF; i++)
-        {
-            if (fsStream.MarshalReadStructure<EternalFileSystemFatEntry>() != EternalFileSystemMounter.EmptyCluster)
-                continue;
-
-            currentEntry = i;
-            break;
-        }
-
-        if (currentEntry == default)
+        if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newEntry))
             throw new OutOfMemoryException();
-
-        fsStream.Seek(-Marshal.SizeOf<EternalFileSystemFatEntry>(), SeekOrigin.Current);
-        fsStream.MarshalWriteStructure(EternalFileSystemMounter.FatTerminator);
 
         using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
@@ -127,12 +113,12 @@ public class EternalFileSystemManager
         for (int i = 0; i < entriesCount; i++)
             stream.MarshalReadStructure<EternalFileSystemEntry>();
 
-        EternalFileSystemEntry entry = new(0, fileName, currentEntry);
+        EternalFileSystemEntry entry = new(0, fileName, newEntry);
         stream.MarshalWriteStructure(entry);
 
         OverwriteEntriesCount(directoryEntry);
 
-        return currentEntry;
+        return newEntry;
     }
 
     public void WriteToFile(in ReadOnlySpan<byte> content, EternalFileSystemFatEntry fileEntry, EternalFileSystemFatEntry directoryEntry)

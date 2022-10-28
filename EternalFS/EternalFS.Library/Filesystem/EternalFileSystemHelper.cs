@@ -50,6 +50,10 @@ public static class EternalFileSystemHelper
                 continue;
 
             entry = i;
+
+            stream.Seek(-Marshal.SizeOf<EternalFileSystemFatEntry>(), SeekOrigin.Current);
+            stream.MarshalWriteStructure(EternalFileSystemMounter.FatTerminator);
+
             return true;
         }
 
