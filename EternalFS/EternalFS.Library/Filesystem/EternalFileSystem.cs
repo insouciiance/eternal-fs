@@ -10,7 +10,7 @@ public abstract class EternalFileSystem
 
     public const string ROOT_DIRECTORY_NAME = "ROOT";
 
-    public static readonly EternalFileSystemFatEntry RootDirectoryEntry = new(0);
+    public static readonly EternalFileSystemFatEntry RootDirectoryEntry = new(1);
 
     public string Name { get; }
 

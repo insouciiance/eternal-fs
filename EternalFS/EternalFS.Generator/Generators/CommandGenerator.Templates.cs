@@ -153,7 +153,8 @@ internal static partial class {commandManagerTypeName}
         {string.Join(",\n", commands
             .Select(c => $@"{{ ""{GetCommandName(c)}"", {GetCommandInfo(c)} }}"))}
     }};
-}}";
+}}
+";
         static string GetCommandInfo(INamedTypeSymbol command)
         {
             var commandDocAttribute = command.GetAttribute<CommandDocAttribute>();

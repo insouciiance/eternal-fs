@@ -60,4 +60,17 @@ public static class EternalFileSystemHelper
         entry = default;
         return false;
     }
+
+    public static int GetClusterOffset(EternalFileSystem fileSystem, EternalFileSystemFatEntry entry)
+    {
+        return EternalFileSystemHeader.HeaderSize +
+            fileSystem.ClustersCount * EternalFileSystem.FAT_ENTRY_SIZE_BYTES +
+            entry * EternalFileSystem.CLUSTER_SIZE_BYTES;
+    }
+
+    public static int GetFatEntryOffset(EternalFileSystemFatEntry entry)
+    {
+        return EternalFileSystemHeader.HeaderSize +
+            entry * EternalFileSystem.FAT_ENTRY_SIZE_BYTES;
+    }
 }
