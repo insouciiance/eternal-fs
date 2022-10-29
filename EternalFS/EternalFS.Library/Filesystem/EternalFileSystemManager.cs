@@ -29,10 +29,10 @@ public class EternalFileSystemManager
 
         void TraverseDirectories(string directoryName)
         {
-            if (directoryName == EternalFileSystem.ROOT_DIRECTORY_NAME)
+            if (directoryName == EternalFileSystemMounter.ROOT_DIRECTORY_NAME)
             {
-                currentStream = new EternalFileSystemFileStream(_fileSystem, EternalFileSystem.RootDirectoryEntry);
-                currentFatEntry = EternalFileSystem.RootDirectoryEntry;
+                currentStream = new EternalFileSystemFileStream(_fileSystem, EternalFileSystemMounter.RootDirectoryEntry);
+                currentFatEntry = EternalFileSystemMounter.RootDirectoryEntry;
                 return;
             }
 
@@ -122,18 +122,54 @@ public class EternalFileSystemManager
 
     public void DeleteFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
     {
-        EternalFileSystemFatEntry fileEntry = OpenFile(fileName, directoryEntry);
+        DeleteFatEntryChain(fileName);
+        DeleteDirectoryEntry(fileName);
 
-        using Stream stream = _fileSystem.GetStream();
-
-        while (fileEntry != EternalFileSystemMounter.FatTerminator)
+        void DeleteDirectoryEntry(in ReadOnlySpan<byte> fileName)
         {
-            int offset = EternalFileSystemHelper.GetFatEntryOffset(fileEntry);
-            stream.Seek(offset, SeekOrigin.Begin);
+            using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
-            fileEntry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
-            stream.Seek(offset, SeekOrigin.Begin);
-            stream.MarshalWriteStructure(EternalFileSystemMounter.EmptyCluster);
+            int entriesCount = OverwriteEntriesCount(stream, false);
+
+            for (int i = 0; i < entriesCount; i++)
+            {
+                long position = stream.Position;
+                var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
+
+                if (!currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(fileName))
+                    continue;
+                
+                for (int j = i; j < entriesCount; j++)
+                {
+                    stream.Seek(position + EternalFileSystemEntry.EntrySize);
+                    currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
+
+                    stream.Seek(position);
+                    stream.MarshalWriteStructure(currentEntry);
+                    
+                    position += EternalFileSystemEntry.EntrySize;
+                }
+
+                break;
+            }
+        }
+
+        void DeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
+        {
+            EternalFileSystemFatEntry fileEntry = OpenFile(fileName, directoryEntry);
+            
+            using Stream stream = _fileSystem.GetStream();
+
+            while (fileEntry != EternalFileSystemMounter.FatTerminator)
+            {
+                int offset = EternalFileSystemHelper.GetFatEntryOffset(fileEntry);
+                
+                stream.Seek(offset, SeekOrigin.Begin);
+                fileEntry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
+                
+                stream.Seek(offset, SeekOrigin.Begin);
+                stream.MarshalWriteStructure(EternalFileSystemMounter.EmptyCluster);
+            }
         }
     }
 
@@ -160,19 +196,21 @@ public class EternalFileSystemManager
                     currentEntry.SubEntryName,
                     currentEntry.FatEntryReference);
 
-                readStream.Seek(-Marshal.SizeOf<EternalFileSystemEntry>(), SeekOrigin.Current);
+                readStream.Seek(-EternalFileSystemEntry.EntrySize, SeekOrigin.Current);
                 readStream.MarshalWriteStructure(newEntry);
             }
         }
     }
 
-    private static int OverwriteEntriesCount(EternalFileSystemFileStream stream)
+    private static int OverwriteEntriesCount(EternalFileSystemFileStream stream, bool increment = true, int delta = 1)
     {
-        stream.Seek(0, SeekOrigin.Begin);
+        int amount = increment ? delta : -delta;
+
+        stream.Seek(0);
         int entriesCount = stream.MarshalReadStructure<int>();
         
-        stream.Seek(0, SeekOrigin.Begin);
-        stream.MarshalWriteStructure(entriesCount + 1);
+        stream.Seek(0);
+        stream.MarshalWriteStructure(entriesCount + amount);
         
         return entriesCount;
     }

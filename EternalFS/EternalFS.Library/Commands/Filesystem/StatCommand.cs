@@ -5,7 +5,7 @@ using EternalFS.Library.Filesystem;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("stat")]
+[Command("stat", true)]
 [CommandDoc("Displays info about a file.")]
 public partial class StatCommand
 {

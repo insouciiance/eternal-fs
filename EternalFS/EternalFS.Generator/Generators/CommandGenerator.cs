@@ -39,7 +39,7 @@ public partial class CommandGenerator : IIncrementalGenerator
             static (context, data) =>
             {
                 context.AddFileSource($"{data.Right}.g.cs", GenerateCommandManagerType(data.Left, data.Right));
-                context.AddFileSource($"{data.Right}.doc.g.cs", GenerateCommandManagerDocumentation(data.Left, data.Right));
+                context.AddFileSource($"{data.Right}.infos.g.cs", GenerateCommandManagerCommandInfos(data.Left, data.Right));
             });
     }
 }

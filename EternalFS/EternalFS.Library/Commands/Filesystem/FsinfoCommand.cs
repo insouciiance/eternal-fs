@@ -6,7 +6,7 @@ using EternalFS.Library.Filesystem;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("fsinfo")]
+[Command("fsinfo", true)]
 [CommandDoc("Outputs the information about the filesystem being used.")]
 public partial class FsinfoCommand
 {
@@ -15,7 +15,7 @@ public partial class FsinfoCommand
         using Stream fsStream = context.FileSystem.GetStream();
         EternalFileSystemHeader header = fsStream.MarshalReadStructure<EternalFileSystemHeader>();
 
-        context.Writer.WriteLine($"Size: {header.Size}b");
+        context.Writer.WriteLine($"Size: {header.Size}B");
         context.Writer.WriteLine($"Created at: {new DateTime(header.CreatedAt)}");
         context.Writer.WriteLine($"Name: {Encoding.UTF8.GetString(header.Name).TrimEnd('\0')}");
 

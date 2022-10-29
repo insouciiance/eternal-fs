@@ -9,9 +9,13 @@ public static class StreamExtensions
         where T : struct
     {
         int structSize = Marshal.SizeOf<T>();
-        
         byte[] bytes = new byte[structSize];
-        stream.Read(bytes, 0, bytes.Length);
+
+        int bytesRead = stream.Read(bytes, 0, bytes.Length);
+
+        if (bytesRead < structSize)
+            throw new IOException($"Unable to read {typeof(T)}: fewer bytes read than requested ({bytesRead}/{structSize}).");
+        
         GCHandle pBytes = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         T result = Marshal.PtrToStructure<T>(pBytes.AddrOfPinnedObject());
 

@@ -1,8 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿namespace EternalFS.Library.Commands.Filesystem;
 
-namespace EternalFS.Library.Commands.Filesystem;
-
-[Command("pwd")]
+[Command("pwd", true)]
 [CommandDoc("Prints current working directory.")]
 public partial class PwdCommand
 {

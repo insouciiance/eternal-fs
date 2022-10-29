@@ -1,8 +1,15 @@
-﻿using EternalFS.Library.Filesystem;
+﻿using System.IO;
+using System.Text;
+using EternalFS.Library.Commands;
 using EternalFS.Library.Terminal;
 
-VirtualEternalFileSystem fs = new("MyEternalFS", 36000);
-fs.Mount();
+TerminalRunner runner = new();
 
-TerminalRunner runner = new(fs);
+runner.OnStart += (ref CommandExecutionContext context) =>
+{
+    string command = "mkfs -n=TestFS -s=35000";
+    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(command));
+    CommandManager.ExecuteCommand(stream, ref context);
+};
+
 runner.Run();

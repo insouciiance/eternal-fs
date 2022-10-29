@@ -7,7 +7,7 @@ using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("ls")]
+[Command("ls", true)]
 [CommandDoc("Lists all entries in current working directory.")]
 public partial class LsCommand
 {

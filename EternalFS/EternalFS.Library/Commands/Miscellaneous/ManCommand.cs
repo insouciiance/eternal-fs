@@ -20,9 +20,9 @@ public partial class ManCommand
 
         string command = Encoding.UTF8.GetString(commandSpan);
 
-        if (CommandManager.Commands.TryGetValue(command, out var info) && info is not null)
+        if (CommandManager.CommandInfos.TryGetValue(command, out var info) && info.Documentation is { } doc)
         {
-            context.Writer.WriteLine($"Summary: {info.Summary}");
+            context.Writer.WriteLine($"Summary: {doc.Summary}");
             return new();
         }
 

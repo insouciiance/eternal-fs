@@ -51,7 +51,7 @@ public static class EternalFileSystemHelper
 
             entry = i;
 
-            stream.Seek(-Marshal.SizeOf<EternalFileSystemFatEntry>(), SeekOrigin.Current);
+            stream.Seek(-EternalFileSystemFatEntry.EntrySize, SeekOrigin.Current);
             stream.MarshalWriteStructure(EternalFileSystemMounter.FatTerminator);
 
             return true;
@@ -64,13 +64,13 @@ public static class EternalFileSystemHelper
     public static int GetClusterOffset(EternalFileSystem fileSystem, EternalFileSystemFatEntry entry)
     {
         return EternalFileSystemHeader.HeaderSize +
-            fileSystem.ClustersCount * EternalFileSystem.FAT_ENTRY_SIZE_BYTES +
-            entry * EternalFileSystem.CLUSTER_SIZE_BYTES;
+            fileSystem.ClustersCount * EternalFileSystemFatEntry.EntrySize +
+            entry * EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
     }
 
     public static int GetFatEntryOffset(EternalFileSystemFatEntry entry)
     {
         return EternalFileSystemHeader.HeaderSize +
-            entry * EternalFileSystem.FAT_ENTRY_SIZE_BYTES;
+            entry * EternalFileSystemFatEntry.EntrySize;
     }
 }

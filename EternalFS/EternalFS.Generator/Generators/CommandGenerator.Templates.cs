@@ -18,9 +18,10 @@ public partial class CommandGenerator
     {
         var commandAttribute = command.GetAttribute<CommandAttribute>()!;
         var commandName = (string)commandAttribute.ConstructorArguments[0].Value!;
-        
+        bool needsFileSystem = (bool)commandAttribute.ConstructorArguments[1].Value!;
+
         var commandDocAttribute = command.GetAttribute<CommandDocAttribute>();
-        var commandSummary = (string?)commandDocAttribute?.ConstructorArguments[0].Value!;
+        string? commandSummary = (string?)commandDocAttribute?.ConstructorArguments[0].Value;
         
         string commandDeclarationName = command.ToDisplayString(CommonFormats.Declaration);
 
@@ -35,7 +36,10 @@ namespace {command.ContainingNamespace};
 /// </summary>
 partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{commandDeclarationName}>, ICommand
 {{
-    static string ICommand.Name => ""{commandName}"";
+    static CommandInfo ICommand.Info {{ get; }} = new(""{commandName}"", {needsFileSystem.ToString().ToLower()})
+    {{
+        Documentation = {(commandSummary is { } ? @$"new(""{commandSummary}"")" : "null")}
+    }};
 }}
 ";
     }
@@ -58,7 +62,7 @@ partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{comma
 
 #nullable enable
 
-internal static partial class {commandManagerTypeName}
+public static partial class {commandManagerTypeName}
 {{
     private const int MAX_COMMAND_LENGTH = 4096;
 
@@ -67,11 +71,7 @@ internal static partial class {commandManagerTypeName}
 
     static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> commandSpan, ref CommandExecutionResult? result);
 
-    public static CommandExecutionResult ExecuteCommand(
-        Stream source,
-        TextWriter writer,
-        EternalFileSystem fileSystem,
-        List<string> currentDirectory)
+    public static CommandExecutionResult ExecuteCommand(Stream source, ref CommandExecutionContext context)
     {{
         Span<byte> buffer = new byte[MAX_COMMAND_LENGTH];
     
@@ -87,22 +87,29 @@ internal static partial class {commandManagerTypeName}
             return new();
 
         ReadOnlySpan<byte> commandSpan = buffer[..spaceIndex];
+        context.ValueSpan = buffer[(spaceIndex + 1)..];
 
-        CommandExecutionContext context = new(fileSystem, buffer[(spaceIndex + 1)..], writer, currentDirectory);
         CommandExecutionResult? result = null;
 
         PreprocessCommand(ref context, commandSpan, ref result);
 
-        return commandSpan switch
+        try
         {{
-            _ when result is not null => result,
+            return commandSpan switch
+            {{
+                _ when result is not null => result,
 {string.Join("\n", commands.Select(SwitchCommand))}
-            _ => HandleDefault(Encoding.UTF8.GetString(commandSpan))
-        }};
-
-        CommandExecutionResult HandleDefault(string command)
+                _ => HandleDefault(ref context, $@""Unable to process """"{{Encoding.UTF8.GetString(commandSpan)}}"""": command not found."")
+            }};
+        }}
+        catch (Exception e)
         {{
-            writer.WriteLine($@""Unable to process """"{{command}}"""": command not found."");
+            return HandleDefault(ref context, e.Message);
+        }}
+
+        CommandExecutionResult HandleDefault(ref CommandExecutionContext context, string message)
+        {{
+            context.Writer.WriteLine(message);
             return new() {{ ExitCode = -1 }};
         }}
     }}
@@ -117,7 +124,7 @@ internal static partial class {commandManagerTypeName}
 
             string commandDeclarationName = command.ToDisplayString(nameDisplayFormat);
 
-            return $@"            {GetCommandSwitchCase(command)} => {commandDeclarationName}.Instance.Execute(ref context),";
+            return $@"                {GetCommandSwitchCase(command)} => {commandDeclarationName}.Instance.Execute(ref context),";
         }
 
         static string GetCommandSwitchCase(INamedTypeSymbol command)
@@ -139,7 +146,7 @@ internal static partial class {commandManagerTypeName}
         }
     }
 
-    private static string GenerateCommandManagerDocumentation(ImmutableArray<INamedTypeSymbol> commands, string commandManagerTypeName)
+    private static string GenerateCommandManagerCommandInfos(ImmutableArray<INamedTypeSymbol> commands, string commandManagerTypeName)
     {
         IList<string> usings = new HashSet<string>(CollectUsings(commands))
         {
@@ -152,25 +159,19 @@ internal static partial class {commandManagerTypeName}
 
 #nullable enable
 
-internal static partial class {commandManagerTypeName}
+public static partial class {commandManagerTypeName}
 {{
-    public static readonly Dictionary<string, CommandInfo?> Commands = new()
+    public static readonly Dictionary<string, CommandInfo> CommandInfos = new()
     {{
 {string.Join(",\n", commands.Select(c => $@"        {{ ""{GetCommandName(c)}"", {GetCommandInfo(c)} }}"))}
     }};
+
+    private static CommandInfo GetInfo<T>()
+        where T : ICommand
+        => T.Info;
 }}
 ";
-        static string GetCommandInfo(INamedTypeSymbol command)
-        {
-            var commandDocAttribute = command.GetAttribute<CommandDocAttribute>();
-
-            if (commandDocAttribute is null)
-                return "null";
-
-            var commandSummary = (string)commandDocAttribute.ConstructorArguments[0].Value!;
-
-            return $@"new CommandInfo(""{commandSummary}"")";
-        }
+        static string GetCommandInfo(INamedTypeSymbol command) => $@"GetInfo<{command.Name}>()";
     }
 
     private static string GetCommandName(INamedTypeSymbol command)

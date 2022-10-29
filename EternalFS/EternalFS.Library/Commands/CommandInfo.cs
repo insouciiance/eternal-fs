@@ -2,10 +2,16 @@
 
 public class CommandInfo
 {
-    public string Summary { get; }
+    public string Name { get; init; }
 
-    public CommandInfo(string summary)
+    public bool NeedsFileSystem { get; init; }
+    
+    public CommandDocumentation? Documentation { get; init; }
+
+    public CommandInfo(string name, bool needsFileSystem, CommandDocumentation? documentation = null)
     {
-        Summary = summary;
+        Name = name;
+        NeedsFileSystem = needsFileSystem;
+        Documentation = documentation;
     }
 }

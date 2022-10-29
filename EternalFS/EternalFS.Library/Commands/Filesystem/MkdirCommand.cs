@@ -5,7 +5,7 @@ using EternalFS.Library.Filesystem;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("mkdir")]
+[Command("mkdir", true)]
 [CommandDoc("Creates an empty directory with the given name.")]
 public partial class MkdirCommand
 {

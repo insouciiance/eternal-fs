@@ -59,7 +59,7 @@ public class EternalFileSystemFileStream : Stream
             
             count -= bytesRead;
 
-            if (_currentClusterIndex == EternalFileSystem.CLUSTER_SIZE_BYTES && !TryEnterNextCluster())
+            if (_currentClusterIndex == EternalFileSystemMounter.CLUSTER_SIZE_BYTES && !TryEnterNextCluster())
                 break;
 
         } while (bytesTotal < initialCount);
@@ -78,7 +78,7 @@ public class EternalFileSystemFileStream : Stream
 
         long SeekFromBegin()
         {
-            int clusterIndex = (int)offset / EternalFileSystem.CLUSTER_SIZE_BYTES;
+            int clusterIndex = (int)offset / EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
 
             _fatEntries.RemoveRange(1, _fatEntries.Count - 1);
 
@@ -89,7 +89,7 @@ public class EternalFileSystemFileStream : Stream
             for (int i = 0; i < clusterIndex; i++)
                 TryEnterNextCluster();
 
-            _currentClusterIndex += (int)offset % EternalFileSystem.CLUSTER_SIZE_BYTES;
+            _currentClusterIndex += (int)offset % EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
 
             return Position;
         }
@@ -115,7 +115,7 @@ public class EternalFileSystemFileStream : Stream
 
             int initialPosition = clusterOffset + _currentClusterIndex;
             _fileSystemStream.Seek(initialPosition, SeekOrigin.Begin);
-            _fileSystemStream.Write(buffer, offset, Math.Min(count, EternalFileSystem.CLUSTER_SIZE_BYTES - _currentClusterIndex));
+            _fileSystemStream.Write(buffer, offset, Math.Min(count, EternalFileSystemMounter.CLUSTER_SIZE_BYTES - _currentClusterIndex));
 
             int bytesWritten = (int)(_fileSystemStream.Position - initialPosition);
             bytesTotal += bytesWritten;
@@ -143,7 +143,7 @@ public class EternalFileSystemFileStream : Stream
         EternalFileSystemFatEntry entry = _fatEntries[^1];
 
         _fileSystemStream.Seek(EternalFileSystemHelper.GetClusterOffset(_fileSystem, entry), SeekOrigin.Begin);
-        _currentCluster = new byte[EternalFileSystem.CLUSTER_SIZE_BYTES];
+        _currentCluster = new byte[EternalFileSystemMounter.CLUSTER_SIZE_BYTES];
         _currentClusterIndex = 0;
         _fileSystemStream.Read(_currentCluster, 0, _currentCluster.Length);
     }
@@ -209,5 +209,5 @@ public class EternalFileSystemFileStream : Stream
         }
     }
 
-    private long GetPosition() => (_fatEntries.Count - 1) * EternalFileSystem.CLUSTER_SIZE_BYTES + _currentClusterIndex;
+    private long GetPosition() => (_fatEntries.Count - 1) * EternalFileSystemMounter.CLUSTER_SIZE_BYTES + _currentClusterIndex;
 }

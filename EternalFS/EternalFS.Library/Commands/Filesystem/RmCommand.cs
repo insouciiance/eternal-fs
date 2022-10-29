@@ -4,7 +4,7 @@ using EternalFS.Library.Filesystem;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("rm")]
+[Command("rm", true)]
 [CommandDoc("Deletes a specified file.")]
 public partial class RmCommand
 {

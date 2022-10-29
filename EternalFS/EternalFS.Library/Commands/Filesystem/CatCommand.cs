@@ -5,7 +5,7 @@ using EternalFS.Library.Filesystem;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("cat")]
+[Command("cat", true)]
 [CommandDoc("Outputs the contents of a given file.")]
 public partial class CatCommand
 {

@@ -7,23 +7,16 @@ namespace EternalFS.Library.Commands;
 
 public ref struct CommandExecutionContext
 {
-    public EternalFileSystem FileSystem { get; init; }
+    public EternalFileSystem FileSystem { get; internal set; } = null!;
     
-    public ReadOnlySpan<byte> ValueSpan { get; init; }
+    public ReadOnlySpan<byte> ValueSpan { get; internal set; } =  ReadOnlySpan<byte>.Empty;
 
-    public TextWriter Writer { get; set; }
+    public TextWriter Writer { get; init; }
 
-    public List<string> CurrentDirectory { get; init; }
+    public List<string> CurrentDirectory { get; init; } = new();
 
-    public CommandExecutionContext(
-        EternalFileSystem fileSystem,
-        ReadOnlySpan<byte> valueSpan,
-        TextWriter writer,
-        List<string> currentDirectory)
+    public CommandExecutionContext(TextWriter writer)
     {
-        FileSystem = fileSystem;
-        ValueSpan = valueSpan;
         Writer = writer;
-        CurrentDirectory = currentDirectory;
     }
 }

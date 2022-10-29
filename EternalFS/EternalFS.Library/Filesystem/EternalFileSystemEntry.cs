@@ -7,6 +7,8 @@ namespace EternalFS.Library.Filesystem;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct EternalFileSystemEntry
 {
+    public static readonly int EntrySize = Marshal.SizeOf<EternalFileSystemEntry>();
+
     public readonly bool IsDirectory;
 
     public readonly int Size;

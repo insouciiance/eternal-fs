@@ -15,4 +15,7 @@ public static partial class ByteSpanHelper
 
     [ByteSpan("..")]
     public static partial ReadOnlySpan<byte> ParentDirectory();
+
+    [ByteSpan("=")]
+    public static partial ReadOnlySpan<byte> Equals();
 }

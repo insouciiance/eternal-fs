@@ -6,7 +6,7 @@ using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
-[Command("cd")]
+[Command("cd", true)]
 [CommandDoc("Changes the current working directory.")]
 public partial class CdCommand
 {

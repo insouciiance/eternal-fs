@@ -24,6 +24,12 @@ public partial class EchoCommand
             return new();
         }
 
+        if (context.FileSystem is null)
+        {
+            context.Writer.WriteLine("This command needs a file system to operate on, no file system was attached.");
+            return new() { ExitCode = -1 };
+        }
+
         EternalFileSystemManager manager = new(context.FileSystem);
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
         EternalFileSystemFatEntry fileEntry = manager.CreateFile(fileName, directoryEntry);

@@ -2,7 +2,7 @@
 
 public interface ICommand
 {
-    static abstract string Name { get; }
+    static abstract CommandInfo Info { get; }
 
     CommandExecutionResult Execute(ref CommandExecutionContext context);
 }

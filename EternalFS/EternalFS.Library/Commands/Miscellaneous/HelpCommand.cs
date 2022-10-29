@@ -6,12 +6,12 @@ public partial class HelpCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        foreach (var (command, info) in CommandManager.Commands)
+        foreach (var (command, info) in CommandManager.CommandInfos)
         {
-            if (info is null)
+            if (info.Documentation is null)
                 continue;
 
-            context.Writer.WriteLine($"{command}: {info.Summary}");
+            context.Writer.WriteLine($"{command}: {info.Documentation.Summary}");
         }
 
         context.Writer.WriteLine();
