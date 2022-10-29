@@ -15,7 +15,7 @@ public partial class CatCommand
 
         EternalFileSystemManager manager = new(context.FileSystem);
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
-        EternalFileSystemFatEntry fileEntry = manager.OpenFile(fileName, directoryEntry);
+        EternalFileSystemFatEntry fileEntry = manager.OpenFile(fileName, directoryEntry).FatEntryReference;
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry);
 

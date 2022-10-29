@@ -32,7 +32,7 @@ public partial class EchoCommand
 
         EternalFileSystemManager manager = new(context.FileSystem);
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
-        EternalFileSystemFatEntry fileEntry = manager.CreateFile(fileName, directoryEntry);
+        EternalFileSystemFatEntry fileEntry = manager.CreateFile(fileName, directoryEntry).FatEntryReference;
 
         manager.WriteToFile(content, fileEntry, directoryEntry);
 

@@ -53,7 +53,7 @@ public class EternalFileSystemManager
         }
     }
 
-    public EternalFileSystemFatEntry OpenFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
+    public EternalFileSystemEntry OpenFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
     {
         using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
@@ -64,7 +64,7 @@ public class EternalFileSystemManager
             var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
 
             if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(fileName))
-                return currentEntry.FatEntryReference;
+                return currentEntry;
         }
 
         return default;
@@ -96,7 +96,7 @@ public class EternalFileSystemManager
         return newEntry;
     }
 
-    public EternalFileSystemFatEntry CreateFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
+    public EternalFileSystemEntry CreateFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
     {
         using Stream fsStream = _fileSystem.GetStream();
 
@@ -117,7 +117,7 @@ public class EternalFileSystemManager
 
         OverwriteEntriesCount(stream);
 
-        return newEntry;
+        return entry;
     }
 
     public void DeleteFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
@@ -138,7 +138,7 @@ public class EternalFileSystemManager
 
                 if (!currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(fileName))
                     continue;
-                
+
                 for (int j = i; j < entriesCount; j++)
                 {
                     stream.Seek(position + EternalFileSystemEntry.EntrySize);
@@ -146,7 +146,7 @@ public class EternalFileSystemManager
 
                     stream.Seek(position);
                     stream.MarshalWriteStructure(currentEntry);
-                    
+
                     position += EternalFileSystemEntry.EntrySize;
                 }
 
@@ -156,24 +156,36 @@ public class EternalFileSystemManager
 
         void DeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
         {
-            EternalFileSystemFatEntry fileEntry = OpenFile(fileName, directoryEntry);
-            
+            EternalFileSystemFatEntry fileEntry = OpenFile(fileName, directoryEntry).FatEntryReference;
+
             using Stream stream = _fileSystem.GetStream();
 
             while (fileEntry != EternalFileSystemMounter.FatTerminator)
             {
                 int offset = EternalFileSystemHelper.GetFatEntryOffset(fileEntry);
-                
+
                 stream.Seek(offset, SeekOrigin.Begin);
                 fileEntry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
-                
+
                 stream.Seek(offset, SeekOrigin.Begin);
                 stream.MarshalWriteStructure(EternalFileSystemMounter.EmptyCluster);
             }
         }
     }
 
-    public void WriteToFile(in ReadOnlySpan<byte> content, EternalFileSystemFatEntry fileEntry, EternalFileSystemFatEntry directoryEntry)
+    public void CopyFile(in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to, in EternalFileSystemFatEntry directoryEntry)
+    {
+        EternalFileSystemEntry fromEntry = OpenFile(from, directoryEntry);
+        EternalFileSystemEntry toEntry = CreateFile(to, directoryEntry);
+
+        using EternalFileSystemFileStream fromStream = new(_fileSystem, fromEntry.FatEntryReference);
+        using EternalFileSystemFileStream toStream = new(_fileSystem, toEntry.FatEntryReference);
+
+        fromStream.CopyTo(toStream);
+        OverwriteFileEntry(toEntry.FatEntryReference, directoryEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
+    }
+
+    public void WriteToFile(in ReadOnlySpan<byte> content, in EternalFileSystemFatEntry fileEntry, in EternalFileSystemFatEntry directoryEntry)
     {
         using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry))
         {
@@ -181,6 +193,15 @@ public class EternalFileSystemManager
             fileStream.Write(content);
         }
 
+        int length = content.Length;
+        OverwriteFileEntry(fileEntry, directoryEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
+    }
+
+    private void OverwriteFileEntry(
+        in EternalFileSystemFatEntry fileEntry,
+        in EternalFileSystemFatEntry directoryEntry,
+        Func<EternalFileSystemEntry, EternalFileSystemEntry> overwriteFunc)
+    {
         using EternalFileSystemFileStream readStream = new(_fileSystem, directoryEntry);
 
         int entriesCount = readStream.MarshalReadStructure<int>();
@@ -191,13 +212,8 @@ public class EternalFileSystemManager
 
             if (currentEntry.FatEntryReference == fileEntry)
             {
-                EternalFileSystemEntry newEntry = new(
-                    content.Length,
-                    currentEntry.SubEntryName,
-                    currentEntry.FatEntryReference);
-
                 readStream.Seek(-EternalFileSystemEntry.EntrySize, SeekOrigin.Current);
-                readStream.MarshalWriteStructure(newEntry);
+                readStream.MarshalWriteStructure(overwriteFunc(currentEntry));
             }
         }
     }
@@ -208,10 +224,10 @@ public class EternalFileSystemManager
 
         stream.Seek(0);
         int entriesCount = stream.MarshalReadStructure<int>();
-        
+
         stream.Seek(0);
         stream.MarshalWriteStructure(entriesCount + amount);
-        
+
         return entriesCount;
     }
 }
