@@ -40,7 +40,7 @@ public static class EternalFileSystemHelper
 
         stream.Seek(EternalFileSystemHeader.HeaderSize, SeekOrigin.Begin);
 
-        ushort clustersCount = fileSystem.ClustersCount;
+        int clustersCount = fileSystem.ClustersCount;
 
         for (ushort i = 0; i < clustersCount; i++)
         {
@@ -61,10 +61,16 @@ public static class EternalFileSystemHelper
         return false;
     }
 
-    public static int GetClusterOffset(EternalFileSystem fileSystem, EternalFileSystemFatEntry entry)
+    public static int GetClustersCount(long size)
+    {
+        return (int)((size - EternalFileSystemHeader.HeaderSize - 2) /
+                        (EternalFileSystemFatEntry.EntrySize + EternalFileSystemMounter.CLUSTER_SIZE_BYTES));
+    }
+
+    public static int GetClusterOffset(long size, EternalFileSystemFatEntry entry)
     {
         return EternalFileSystemHeader.HeaderSize +
-            fileSystem.ClustersCount * EternalFileSystemFatEntry.EntrySize +
+            GetClustersCount(size) * EternalFileSystemFatEntry.EntrySize +
             entry * EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
     }
 

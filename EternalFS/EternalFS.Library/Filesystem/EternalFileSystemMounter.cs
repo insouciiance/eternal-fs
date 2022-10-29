@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
 using EternalFS.Library.Extensions;
+using EternalFS.Library.Filesystem.Initializers;
 
 namespace EternalFS.Library.Filesystem;
 
-public class EternalFileSystemMounter
+public static class EternalFileSystemMounter
 {
     public const int CLUSTER_SIZE_BYTES = 512;
 
@@ -16,44 +17,42 @@ public class EternalFileSystemMounter
 
     public static readonly EternalFileSystemFatEntry EmptyCluster = new(0x00, 0x00);
 
-    private readonly EternalFileSystem _fileSystem;
-
-    public EternalFileSystemMounter(EternalFileSystem fileSystem)
+    public static void Mount<T>(IEternalFileSystemInitializer<T> initializer)
+        where T : EternalFileSystem
     {
-        _fileSystem = fileSystem;
+        initializer.Allocate();
+        using Stream stream = initializer.GetStream();
+
+        WriteHeader(initializer, stream);
+        WriteAllocationTable(initializer, stream);
+        WriteDataSegment(initializer, stream);
     }
 
-    public void Mount()
+    private static void WriteHeader<T>(IEternalFileSystemInitializer<T> initializer, Stream stream)
+        where T : EternalFileSystem
     {
-        using Stream stream = _fileSystem.GetStream();
-
-        WriteHeader(stream);
-        WriteAllocationTable(stream);
-        WriteDataSegment(stream);
-    }
-
-    private void WriteHeader(Stream stream)
-    {
-        EternalFileSystemHeader header = new(_fileSystem.Size, _fileSystem.Name, DateTime.Now.Ticks);
+        EternalFileSystemHeader header = new(initializer.Size, initializer.Name, DateTime.Now.Ticks);
         stream.MarshalWriteStructure(header);
     }
 
-    private void WriteAllocationTable(Stream stream)
+    private static void WriteAllocationTable<T>(IEternalFileSystemInitializer<T> initializer, Stream stream)
+        where T : EternalFileSystem
     {
         stream.MarshalWriteStructure(FatTerminator);
 
         stream.MarshalWriteStructure(FatTerminator);
         
-        for (int i = 1; i < _fileSystem.ClustersCount; i++)
+        for (int i = 1; i < EternalFileSystemHelper.GetClustersCount(initializer.Size); i++)
             stream.MarshalWriteStructure(EmptyCluster);
     }
 
-    private void WriteDataSegment(Stream stream)
+    private static void WriteDataSegment<T>(IEternalFileSystemInitializer<T> initializer, Stream stream)
+        where T : EternalFileSystem
     {
-        for (int i = 0; i < _fileSystem.ClustersCount; i++)
+        for (int i = 0; i < EternalFileSystemHelper.GetClustersCount(initializer.Size); i++)
             stream.Write(new byte[CLUSTER_SIZE_BYTES], 0, CLUSTER_SIZE_BYTES);
 
-        using EternalFileSystemFileStream fs = new(_fileSystem, RootDirectoryEntry);
-        fs.WriteByte(0);
+        stream.Seek(EternalFileSystemHelper.GetClusterOffset(initializer.Size, RootDirectoryEntry), SeekOrigin.Begin);
+        stream.WriteByte(0);
     }
 }

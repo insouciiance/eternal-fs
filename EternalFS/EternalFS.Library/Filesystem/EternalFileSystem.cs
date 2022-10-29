@@ -1,29 +1,29 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Text;
+using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Filesystem;
 
 public abstract class EternalFileSystem
 {
-    public string Name { get; }
+    public string Name { get; private set; } = null!;
 
-    public long Size { get; }
+    public long Size { get; private set; }
 
-    public ushort ClustersCount { get; }
+    public DateTime CreatedAt { get; private set; }
 
-    protected EternalFileSystem(string name, long size)
+    public int ClustersCount => EternalFileSystemHelper.GetClustersCount(Size);
+
+    protected void Init()
     {
-        Name = name;
-        Size = size;
-        ClustersCount = GetClustersCount();
+        using Stream stream = GetStream();
+        var header = stream.MarshalReadStructure<EternalFileSystemHeader>();
+
+        Name = Encoding.UTF8.GetString(header.Name).TrimEnd('\0');
+        Size = header.Size;
+        CreatedAt = new DateTime(header.CreatedAt);
     }
 
     public abstract Stream GetStream();
-
-    public abstract void Mount();
-
-    private ushort GetClustersCount()
-    {
-        return (ushort)((Size - EternalFileSystemHeader.HeaderSize - 2) /
-                        (EternalFileSystemFatEntry.EntrySize + EternalFileSystemMounter.CLUSTER_SIZE_BYTES));
-    }
 }

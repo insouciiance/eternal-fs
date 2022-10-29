@@ -111,7 +111,7 @@ public class EternalFileSystemFileStream : Stream
         {
             EternalFileSystemFatEntry entry = _fatEntries[^1];
 
-            int clusterOffset = EternalFileSystemHelper.GetClusterOffset(_fileSystem, entry);
+            int clusterOffset = EternalFileSystemHelper.GetClusterOffset(_fileSystem.Size, entry);
 
             int initialPosition = clusterOffset + _currentClusterIndex;
             _fileSystemStream.Seek(initialPosition, SeekOrigin.Begin);
@@ -142,7 +142,7 @@ public class EternalFileSystemFileStream : Stream
 
         EternalFileSystemFatEntry entry = _fatEntries[^1];
 
-        _fileSystemStream.Seek(EternalFileSystemHelper.GetClusterOffset(_fileSystem, entry), SeekOrigin.Begin);
+        _fileSystemStream.Seek(EternalFileSystemHelper.GetClusterOffset(_fileSystem.Size, entry), SeekOrigin.Begin);
         _currentCluster = new byte[EternalFileSystemMounter.CLUSTER_SIZE_BYTES];
         _currentClusterIndex = 0;
         _fileSystemStream.Read(_currentCluster, 0, _currentCluster.Length);

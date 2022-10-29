@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using EternalFS.Library.Filesystem;
+using EternalFS.Library.Filesystem.Initializers;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -26,28 +27,21 @@ public partial class MkfsCommand
         if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Size(), out var sizeSpan))
             return new() { ExitCode = -1 };
 
-        EternalFileSystem fs;
+        string name = Encoding.UTF8.GetString(nameSpan);
+        int size = int.Parse(Encoding.UTF8.GetString(sizeSpan));
 
-        if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, FileName(), out var fileName))
-        {
-            fs = new VirtualEternalFileSystem(
-                Encoding.UTF8.GetString(nameSpan),
-                int.Parse(Encoding.UTF8.GetString(sizeSpan)));
-        }
+        IEternalFileSystemInitializer<EternalFileSystem> initializer;
+
+        if (ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, FileName(), out var fileName))
+            initializer = new DiskEternalFileSystemInitializer(name, size, Encoding.UTF8.GetString(fileName));
         else
-        {
-            fs = new DiskEternalFileSystem(
-                Encoding.UTF8.GetString(fileName),
-                Encoding.UTF8.GetString(nameSpan),
-                int.Parse(Encoding.UTF8.GetString(sizeSpan)));
-        }
-
-        fs.Mount();
+            initializer = new VirtualEternalFileSystemInitializer(name, size);
 
         context.CurrentDirectory.Clear();
         context.CurrentDirectory.Add(EternalFileSystemMounter.ROOT_DIRECTORY_NAME);
 
-        context.FileSystem = fs;
+        EternalFileSystemMounter.Mount(initializer);
+        context.FileSystem = initializer.CreateFileSystem();
 
         return new();
     }
