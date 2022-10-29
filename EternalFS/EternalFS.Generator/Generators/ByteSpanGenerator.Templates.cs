@@ -20,7 +20,7 @@ public partial class ByteSpanGenerator
         return $@"
 using System;
 
-namespace {type.ContainingNamespace};
+{(type.ContainingNamespace.IsGlobalNamespace ? string.Empty : $"namespace {type.ContainingNamespace};")}
 
 partial {GetTypeKindString(type)} {typeDeclarationName}
 {{

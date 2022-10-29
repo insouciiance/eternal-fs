@@ -65,6 +65,8 @@ internal static partial class {commandManagerTypeName}
 {string.Join("\n\n", commands
     .Select(c => $"    private static ReadOnlySpan<byte> {GetCommandSpanName(c)} => new byte[] {{ {GetCommandSpanBytes(c)} }};"))}
 
+    static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> commandSpan, ref CommandExecutionResult? result);
+
     public static CommandExecutionResult ExecuteCommand(
         Stream source,
         TextWriter writer,
@@ -87,9 +89,13 @@ internal static partial class {commandManagerTypeName}
         ReadOnlySpan<byte> commandSpan = buffer[..spaceIndex];
 
         CommandExecutionContext context = new(fileSystem, buffer[(spaceIndex + 1)..], writer, currentDirectory);
+        CommandExecutionResult? result = null;
+
+        PreprocessCommand(ref context, commandSpan, ref result);
 
         return commandSpan switch
         {{
+            _ when result is not null => result,
 {string.Join("\n", commands.Select(SwitchCommand))}
             _ => HandleDefault(Encoding.UTF8.GetString(commandSpan))
         }};
@@ -150,8 +156,7 @@ internal static partial class {commandManagerTypeName}
 {{
     public static readonly Dictionary<string, CommandInfo?> Commands = new()
     {{
-        {string.Join(",\n", commands
-            .Select(c => $@"{{ ""{GetCommandName(c)}"", {GetCommandInfo(c)} }}"))}
+{string.Join(",\n", commands.Select(c => $@"        {{ ""{GetCommandName(c)}"", {GetCommandInfo(c)} }}"))}
     }};
 }}
 ";
