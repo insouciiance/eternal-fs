@@ -18,7 +18,7 @@ public partial class CpCommand
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
         manager.CopyFile(from, to, directoryEntry);
 
-        context.Writer.WriteLine($"Copied {Encoding.UTF8.GetString(from)} to {Encoding.UTF8.GetString(to)}");
+        context.Writer.Append($"Copied {Encoding.UTF8.GetString(from)} to {Encoding.UTF8.GetString(to)}");
 
         return new();
     }

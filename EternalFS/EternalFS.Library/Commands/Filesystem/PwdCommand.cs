@@ -6,7 +6,7 @@ public partial class PwdCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        context.Writer.WriteLine(string.Join("\\", context.CurrentDirectory));
+        context.Writer.Append(string.Join("\\", context.CurrentDirectory));
         return new();
     }
 }

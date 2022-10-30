@@ -1,4 +1,6 @@
-﻿namespace EternalFS.Library.Commands.Filesystem;
+﻿using EternalFS.Library.Filesystem;
+
+namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("fsinfo", true)]
 [CommandDoc("Outputs the information about the filesystem being used.")]
@@ -6,9 +8,12 @@ public partial class FsinfoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        context.Writer.WriteLine($"Size: {context.FileSystem.Size}B");
-        context.Writer.WriteLine($"Created at: {context.FileSystem.CreatedAt}");
-        context.Writer.WriteLine($"Name: {context.FileSystem.Name}");
+        context.Writer.AppendLine($"Size: {context.FileSystem.Size}B");
+        context.Writer.AppendLine($"Created at: {context.FileSystem.CreatedAt}");
+        context.Writer.Append($"Name: {context.FileSystem.Name}");
+
+        if (context.FileSystem is DiskEternalFileSystem diskFs)
+            context.Writer.Append($"\r\nThe file system is located at: {diskFs.FileName}");
 
         return new();
     }

@@ -14,7 +14,7 @@ public partial class ManCommand
 
         if (commandSpan == ReadOnlySpan<byte>.Empty)
         {
-            context.Writer.WriteLine("Command name expected.");
+            context.Writer.Append("Command name expected.");
             return new() { ExitCode = -1 };
         }
 
@@ -22,11 +22,11 @@ public partial class ManCommand
 
         if (CommandManager.CommandInfos.TryGetValue(command, out var info) && info.Documentation is { } doc)
         {
-            context.Writer.WriteLine($"Summary: {doc.Summary}");
+            context.Writer.Append($"Summary: {doc.Summary}");
             return new();
         }
 
-        context.Writer.WriteLine($@"Can't find documentation for ""{command}"".");
+        context.Writer.Append($@"Can't find documentation for ""{command}"".");
         return new() { ExitCode = -1 };
     }
 }

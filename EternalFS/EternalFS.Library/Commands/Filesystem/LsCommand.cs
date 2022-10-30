@@ -28,7 +28,7 @@ public partial class LsCommand
             EternalFileSystemEntry subEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
             subEntries.Add(subEntry);
         }
-        
+
         DumpInfo(ref context, subEntries);
 
         return new();
@@ -46,8 +46,11 @@ public partial class LsCommand
                 if (!subEntry.IsDirectory)
                     continue;
 
+                if (context.Writer.Length > 0)
+                    context.Writer.AppendLine();
+
                 string directoryName = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
-                context.Writer.WriteLine($"{directoryName}/");
+                context.Writer.Append($"{directoryName}/");
             }
         }
 
@@ -58,15 +61,14 @@ public partial class LsCommand
                 if (subEntry.IsDirectory)
                     continue;
 
-                StringBuilder builder = new();
-                
+                if (context.Writer.Length > 0)
+                    context.Writer.AppendLine();
+
                 string fileName = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
-                builder.Append(fileName);
+                context.Writer.Append(fileName);
                 
                 if (context.ValueSpan.Contains(LongList()))
-                    builder.Append($" [{subEntry.Size}B]");
-                
-                context.Writer.WriteLine(builder);
+                    context.Writer.Append($" [{subEntry.Size}B]");
             }
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Utils;
@@ -173,7 +172,7 @@ public class EternalFileSystemManager
         }
     }
 
-    public void CopyFile(in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to, in EternalFileSystemFatEntry directoryEntry)
+    public void CopyFile(in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to, EternalFileSystemFatEntry directoryEntry)
     {
         EternalFileSystemEntry fromEntry = OpenFile(from, directoryEntry);
         EternalFileSystemEntry toEntry = CreateFile(to, directoryEntry);
@@ -185,7 +184,7 @@ public class EternalFileSystemManager
         OverwriteFileEntry(toEntry.FatEntryReference, directoryEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
     }
 
-    public void WriteToFile(in ReadOnlySpan<byte> content, in EternalFileSystemFatEntry fileEntry, in EternalFileSystemFatEntry directoryEntry)
+    public void WriteFile(in ReadOnlySpan<byte> content, EternalFileSystemFatEntry fileEntry, EternalFileSystemFatEntry directoryEntry)
     {
         using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry))
         {
@@ -198,8 +197,8 @@ public class EternalFileSystemManager
     }
 
     private void OverwriteFileEntry(
-        in EternalFileSystemFatEntry fileEntry,
-        in EternalFileSystemFatEntry directoryEntry,
+        EternalFileSystemFatEntry fileEntry,
+        EternalFileSystemFatEntry directoryEntry,
         Func<EternalFileSystemEntry, EternalFileSystemEntry> overwriteFunc)
     {
         using EternalFileSystemFileStream readStream = new(_fileSystem, directoryEntry);

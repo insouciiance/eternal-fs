@@ -15,7 +15,11 @@ public class DiskEternalFileSystemInitializer : IEternalFileSystemInitializer<Di
     {
         Name = name;
         Size = size;
-        FileName = $"{fileName}.{DiskEternalFileSystem.EXTENSION}";
+
+        FileName = fileName;
+        
+        if (!FileName.EndsWith($"{DiskEternalFileSystem.EXTENSION}"))
+            FileName += $".{DiskEternalFileSystem.EXTENSION}";
     }
 
     public void Allocate()

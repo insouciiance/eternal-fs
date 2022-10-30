@@ -48,6 +48,7 @@ partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{comma
     {
         IList<string> usings = new HashSet<string>(CollectUsings(commands))
         {
+            "EternalFS.Library.Extensions",
             "EternalFS.Library.Filesystem",
             "EternalFS.Library.Utils",
             typeof(int).Namespace,
@@ -69,7 +70,9 @@ public static partial class {commandManagerTypeName}
 {string.Join("\n\n", commands
     .Select(c => $"    private static ReadOnlySpan<byte> {GetCommandSpanName(c)} => new byte[] {{ {GetCommandSpanBytes(c)} }};"))}
 
-    static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> commandSpan, ref CommandExecutionResult? result);
+    static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result);
+    
+    static partial void PostProcessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result);
 
     public static CommandExecutionResult ExecuteCommand(Stream source, ref CommandExecutionContext context)
     {{
@@ -85,17 +88,17 @@ public static partial class {commandManagerTypeName}
         // just skip if there is no input
         if (buffer.TrimEnd(ByteSpanHelper.Null()).SequenceEqual(ReadOnlySpan<byte>.Empty))
             return new();
-
+        
         ReadOnlySpan<byte> commandSpan = buffer[..spaceIndex];
         context.ValueSpan = buffer[(spaceIndex + 1)..];
 
         CommandExecutionResult? result = null;
 
-        PreprocessCommand(ref context, commandSpan, ref result);
+        PreprocessCommand(ref context, buffer, ref result);
 
         try
         {{
-            return commandSpan switch
+            result = commandSpan switch
             {{
                 _ when result is not null => result,
 {string.Join("\n", commands.Select(SwitchCommand))}
@@ -104,12 +107,16 @@ public static partial class {commandManagerTypeName}
         }}
         catch (Exception e)
         {{
-            return HandleDefault(ref context, e.Message);
+            result = HandleDefault(ref context, e.Message);
         }}
+
+        PostProcessCommand(ref context, buffer, ref result);
+
+        return result;
 
         CommandExecutionResult HandleDefault(ref CommandExecutionContext context, string message)
         {{
-            context.Writer.WriteLine(message);
+            context.Writer.Append(message);
             return new() {{ ExitCode = -1 }};
         }}
     }}

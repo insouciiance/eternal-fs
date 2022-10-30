@@ -21,17 +21,17 @@ public partial class StatCommand
         if (EternalFileSystemHelper.TryLocateSubEntry(context.FileSystem, directory, subEntryName, out var subEntry))
             PrintEntryInfo(ref context, subEntry, entryString);
         else
-            context.Writer.WriteLine($"{entryString} not found.");
+            context.Writer.Append($"{entryString} not found.");
         
         return new();
 
         static void PrintEntryInfo(ref CommandExecutionContext context, EternalFileSystemEntry entry, string entryName)
         {
-            context.Writer.WriteLine($"Name: {entryName}");
-            context.Writer.WriteLine($"Created at: {new DateTime(entry.CreatedAt)}");
+            context.Writer.AppendLine($"Name: {entryName}");
+            context.Writer.Append($"Created at: {new DateTime(entry.CreatedAt)}");
 
             if (!entry.IsDirectory)
-                context.Writer.WriteLine($"Size: {entry.Size}B");
+                context.Writer.Append($"\r\nSize: {entry.Size}B");
         }
     }
 }

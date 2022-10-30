@@ -17,7 +17,7 @@ public partial class MkdirCommand
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
         manager.CreateDirectory(directoryName, directoryEntry);
 
-        context.Writer.WriteLine($"Created a directory {Encoding.UTF8.GetString(directoryName)}");
+        context.Writer.Append($"Created a directory {Encoding.UTF8.GetString(directoryName)}");
 
         return new();
     }

@@ -17,7 +17,7 @@ public partial class TouchCommand
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
         manager.CreateFile(fileName, directoryEntry);
 
-        context.Writer.WriteLine($"Created a file {Encoding.UTF8.GetString(fileName)}");
+        context.Writer.Append($"Created a file {Encoding.UTF8.GetString(fileName)}");
 
         return new();
     }

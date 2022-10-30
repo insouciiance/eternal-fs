@@ -11,11 +11,11 @@ public partial class HelpCommand
             if (info.Documentation is null)
                 continue;
 
-            context.Writer.WriteLine($"{command}: {info.Documentation.Summary}");
+            context.Writer.AppendLine($"{command}: {info.Documentation.Summary}");
         }
 
-        context.Writer.WriteLine();
-        context.Writer.WriteLine(@"Command ""man"" or flag ""--help"" may provide more info for individual commands.");
+        context.Writer.AppendLine();
+        context.Writer.Append(@"Command ""man"" or flag ""--help"" may provide more info for individual commands.");
 
         return new();
     }

@@ -6,16 +6,20 @@ public class DiskEternalFileSystem : EternalFileSystem
 {
     public const string EXTENSION = "efs";
 
-    private readonly string _fileName;
+    public string FileName { get; }
 
     public DiskEternalFileSystem(string fileName)
     {
-        _fileName = fileName;
+        FileName = fileName;
+
+        if (!FileName.EndsWith($"{EXTENSION}"))
+            FileName += $".{EXTENSION}";
+
         Init();
     }
 
     public override Stream GetStream()
     {
-        return File.Open(_fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+        return File.Open(FileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
     }
 }

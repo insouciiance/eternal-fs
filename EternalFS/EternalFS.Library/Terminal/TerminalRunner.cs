@@ -14,7 +14,7 @@ public class TerminalRunner
     public void Run()
     {
         CommandExecutionResult commandResult;
-        CommandExecutionContext context = new(Console.Out);
+        CommandExecutionContext context = new();
 
         OnStart?.Invoke(ref context);
 
@@ -26,6 +26,11 @@ public class TerminalRunner
             string commandLine = Console.ReadLine()!;
             using MemoryStream inputStream = new(Encoding.UTF8.GetBytes(commandLine));
             commandResult = CommandManager.ExecuteCommand(inputStream, ref context);
+
+            if (context.Writer.Length > 0)
+                Console.WriteLine(context.Writer);
+            
+            context.Writer.Clear();
         } while (!commandResult.ShouldExit);
     }
 

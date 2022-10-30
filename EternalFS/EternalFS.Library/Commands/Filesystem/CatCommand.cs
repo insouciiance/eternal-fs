@@ -25,7 +25,7 @@ public partial class CatCommand
         stream.Read(content, 0, content.Length);
         string contentString = Encoding.UTF8.GetString(content);
 
-        context.Writer.WriteLine(contentString);
+        context.Writer.Append(contentString);
 
         return new();
     }
