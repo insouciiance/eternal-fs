@@ -15,13 +15,11 @@ public partial class CatCommand
 
         EternalFileSystemManager manager = new(context.FileSystem);
         EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
-        EternalFileSystemFatEntry fileEntry = manager.OpenFile(fileName, directoryEntry).FatEntryReference;
+        EternalFileSystemEntry fileEntry = manager.OpenFile(fileName, directoryEntry);
 
-        using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry);
+        using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry.FatEntryReference);
 
-        int contentLength = stream.MarshalReadStructure<int>();
-
-        byte[] content = new byte[contentLength];
+        byte[] content = new byte[fileEntry.Size];
         stream.Read(content, 0, content.Length);
         string contentString = Encoding.UTF8.GetString(content);
 

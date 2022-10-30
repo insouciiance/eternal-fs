@@ -188,7 +188,6 @@ public class EternalFileSystemManager
     {
         using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry))
         {
-            fileStream.MarshalWriteStructure(content.Length);
             fileStream.Write(content);
         }
 
