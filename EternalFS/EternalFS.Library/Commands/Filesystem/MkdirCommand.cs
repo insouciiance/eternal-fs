@@ -26,18 +26,12 @@ public partial class MkdirCommand
         EternalFileSystemManager manager = new(context.FileSystem);
 
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-            };
-        }
-        
+            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
+
         manager.CreateDirectory(directoryName, directoryEntry);
 
         context.Writer.Append($"Created a directory {Encoding.UTF8.GetString(directoryName)}");
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

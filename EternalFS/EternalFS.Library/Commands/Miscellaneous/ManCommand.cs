@@ -23,7 +23,7 @@ public partial class ManCommand
         if (CommandManager.CommandInfos.TryGetValue(command, out var info) && info.Documentation is { } doc)
         {
             context.Writer.Append($"Summary: {doc.Summary}");
-            return new();
+            return CommandExecutionResult.Default;
         }
 
         context.Writer.Append($@"Can't find documentation for ""{command}"".");

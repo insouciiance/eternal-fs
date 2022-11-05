@@ -17,18 +17,12 @@ public partial class CpCommand
         EternalFileSystemManager manager = new(context.FileSystem);
 
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-            };
-        }
+            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
         manager.CopyFile(from, to, directoryEntry);
 
         context.Writer.Append($"Copied {Encoding.UTF8.GetString(from)} to {Encoding.UTF8.GetString(to)}");
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

@@ -10,6 +10,6 @@ public partial class TimeCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         context.Writer.Append(DateTime.Now.ToString(CultureInfo.InvariantCulture));
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

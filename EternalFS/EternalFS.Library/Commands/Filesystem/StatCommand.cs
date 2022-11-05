@@ -16,13 +16,7 @@ public partial class StatCommand
         EternalFileSystemManager manager = new(context.FileSystem);
 
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directory))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-            };
-        }
+            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
         string entryString = Encoding.UTF8.GetString(subEntryName);
         
@@ -30,8 +24,8 @@ public partial class StatCommand
             PrintEntryInfo(ref context, subEntry, entryString);
         else
             context.Writer.Append($"{entryString} not found.");
-        
-        return new();
+
+        return CommandExecutionResult.Default;
 
         static void PrintEntryInfo(ref CommandExecutionContext context, EternalFileSystemEntry entry, string entryName)
         {

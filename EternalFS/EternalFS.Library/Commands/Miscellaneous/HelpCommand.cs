@@ -17,6 +17,6 @@ public partial class HelpCommand
         context.Writer.AppendLine();
         context.Writer.Append(@"Command ""man"" or flag ""--help"" may provide more info for individual commands.");
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

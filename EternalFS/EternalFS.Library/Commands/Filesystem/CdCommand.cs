@@ -26,17 +26,11 @@ public partial class CdCommand
         
         if (!manager.TryOpenDirectory(stack, out _))
         {
-            CommandExecutionResult result = new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', stack) }
-            };
-
+            var result = CommandExecutionResult.CantOpenDirectory(stack);
             stack.RemoveAt(stack.Count - 1);
-
             return result;
         }
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

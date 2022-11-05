@@ -26,13 +26,7 @@ public partial class CatCommand
         EternalFileSystemManager manager = new(context.FileSystem);
 
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-            };
-        }
+            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
         EternalFileSystemEntry fileEntry = manager.OpenFile(fileName, directoryEntry);
 
@@ -44,6 +38,6 @@ public partial class CatCommand
 
         context.Writer.Append(contentString);
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

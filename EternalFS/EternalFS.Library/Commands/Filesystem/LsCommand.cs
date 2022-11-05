@@ -17,13 +17,7 @@ public partial class LsCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         if (!new EternalFileSystemManager(context.FileSystem).TryOpenDirectory(context.CurrentDirectory, out var currentDirectory))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-            };
-        }
+            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, currentDirectory);
 
@@ -39,7 +33,7 @@ public partial class LsCommand
 
         DumpInfo(ref context, subEntries);
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 
     private static void DumpInfo(ref CommandExecutionContext context, HashSet<EternalFileSystemEntry> subEntries)

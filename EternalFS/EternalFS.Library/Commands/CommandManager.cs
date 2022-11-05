@@ -72,14 +72,8 @@ public static partial class CommandManager
 
             if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
             {
-                result = new()
-                {
-                    State = CommandExecutionState.CantOpenDirectory,
-                    MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-                };
-
+                result = CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
                 context.Writer.Clear();
-
                 return;
             }
 
@@ -91,7 +85,7 @@ public static partial class CommandManager
 
         void HandleInvalidExecutionStatus(ref CommandExecutionContext context, ref CommandExecutionResult result)
         {
-            if (result.State == CommandExecutionState.Valid)
+            if (result.State is CommandExecutionState.Valid or CommandExecutionState.Other)
                 return;
 
             string formattedMessage = _executionStateMessages.TryGetValue(result.State, out var message)

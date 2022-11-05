@@ -9,6 +9,6 @@ public partial class EchoCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         context.Writer.Append(Encoding.UTF8.GetString(context.ValueSpan));
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

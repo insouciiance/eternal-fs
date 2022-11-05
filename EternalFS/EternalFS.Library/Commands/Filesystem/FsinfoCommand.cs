@@ -15,6 +15,6 @@ public partial class FsinfoCommand
         if (context.FileSystem is DiskEternalFileSystem diskFs)
             context.Writer.Append($"\r\nThe file system is located at: {diskFs.FileName}");
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

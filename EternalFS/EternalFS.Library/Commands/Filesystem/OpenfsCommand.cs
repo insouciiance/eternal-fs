@@ -20,6 +20,6 @@ public partial class OpenfsCommand
         DiskEternalFileSystem fs = new(fileName);
         context.FileSystem = fs;
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

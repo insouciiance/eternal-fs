@@ -9,20 +9,14 @@ public partial class DirinfoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        
+
         if (!new EternalFileSystemManager(context.FileSystem).TryOpenDirectory(context.CurrentDirectory, out var entry))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantOpenDirectory,
-                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
-            };
-        }
-        
+            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
+
         using Stream stream = new EternalFileSystemFileStream(context.FileSystem, entry);
 
         context.Writer.Append($"Subentries count: {stream.ReadByte()}");
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }

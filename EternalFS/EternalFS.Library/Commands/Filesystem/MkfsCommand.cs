@@ -43,6 +43,6 @@ public partial class MkfsCommand
         EternalFileSystemMounter.Mount(initializer);
         context.FileSystem = initializer.CreateFileSystem();
 
-        return new();
+        return CommandExecutionResult.Default;
     }
 }
