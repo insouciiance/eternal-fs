@@ -15,7 +15,16 @@ public partial class CpCommand
         ReadOnlySpan<byte> to = context.ValueSpan.SplitIndex(1);
 
         EternalFileSystemManager manager = new(context.FileSystem);
-        EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
+
+        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantOpenDirectory,
+                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+            };
+        }
+
         manager.CopyFile(from, to, directoryEntry);
 
         context.Writer.Append($"Copied {Encoding.UTF8.GetString(from)} to {Encoding.UTF8.GetString(to)}");

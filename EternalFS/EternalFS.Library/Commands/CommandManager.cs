@@ -18,7 +18,7 @@ public static partial class CommandManager
     static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
     {
         context.ValueSpan = context.ValueSpan.SplitIndex(WriteDelimiter());
-        
+
         int spaceIndex = input.IndexOf(ByteSpanHelper.Space());
         ReadOnlySpan<byte> commandSpan = input[(spaceIndex + 1)..];
 
@@ -26,8 +26,7 @@ public static partial class CommandManager
             CommandInfos.TryGetValue(Encoding.UTF8.GetString(commandSpan), out var info) &&
             info.NeedsFileSystem)
         {
-            context.Writer.Append("This command needs a file system to operate on, no file system was attached.");
-            result = new() { ExitCode = -1 };
+            result = new() { State = CommandExecutionState.MissingFileSystem };
             return;
         }
 
@@ -40,22 +39,66 @@ public static partial class CommandManager
 
     static partial void PostProcessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
     {
-        ReadOnlySpan<byte> fileName = input.SplitIndex(WriteDelimiter(), 1);
+        HandleFileDelimiter(ref context, input, ref result);
+        HandleInvalidExecutionStatus(ref context, ref result);
 
-        if (fileName == ReadOnlySpan<byte>.Empty)
-            return;
-
-        if (context.FileSystem is null)
+        void HandleFileDelimiter(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
         {
-            context.Writer.Append("This command needs a file system to operate on, no file system was attached.");
-            return;
+            ReadOnlySpan<byte> filename = input.SplitIndex(WriteDelimiter(), 1);
+
+            if (filename == ReadOnlySpan<byte>.Empty)
+                return;
+
+            if (!ValidationHelper.IsFilenameValid(filename))
+            {
+                result = new()
+                {
+                    State = CommandExecutionState.InvalidFilename,
+                    MessageArguments = new[] { filename.GetString() }
+                };
+
+                context.Writer.Clear();
+
+                return;
+            }
+
+            if (context.FileSystem is null)
+            {
+                result = new() { State = CommandExecutionState.MissingFileSystem };
+                return;
+            }
+
+            EternalFileSystemManager manager = new(context.FileSystem);
+
+            if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
+            {
+                result = new()
+                {
+                    State = CommandExecutionState.CantOpenDirectory,
+                    MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+                };
+
+                context.Writer.Clear();
+
+                return;
+            }
+
+            EternalFileSystemFatEntry fileEntry = manager.CreateFile(filename, directoryEntry).FatEntryReference;
+
+            manager.WriteFile(Encoding.UTF8.GetBytes(context.Writer.ToString()), fileEntry, directoryEntry);
+            context.Writer.Clear();
         }
 
-        EternalFileSystemManager manager = new(context.FileSystem);
-        EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
-        EternalFileSystemFatEntry fileEntry = manager.CreateFile(fileName, directoryEntry).FatEntryReference;
+        void HandleInvalidExecutionStatus(ref CommandExecutionContext context, ref CommandExecutionResult result)
+        {
+            if (result.State == CommandExecutionState.Valid)
+                return;
 
-        manager.WriteFile(Encoding.UTF8.GetBytes(context.Writer.ToString()), fileEntry, directoryEntry);
-        context.Writer.Clear();
+            string formattedMessage = _executionStateMessages.TryGetValue(result.State, out var message)
+                    ? string.Format(message, result.MessageArguments ?? Array.Empty<object?>())
+                    : $"The command failed to execute: status {result.State} (code {(int)result.State}).";
+
+            context.Writer.Append(formattedMessage);
+        }
     }
 }

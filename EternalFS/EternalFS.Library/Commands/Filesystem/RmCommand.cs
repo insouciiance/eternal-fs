@@ -14,7 +14,16 @@ public partial class RmCommand
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
 
         EternalFileSystemManager manager = new(context.FileSystem);
-        EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
+
+        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantOpenDirectory,
+                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+            };
+        }
+
         manager.DeleteFile(fileName, directoryEntry);
 
         return new();

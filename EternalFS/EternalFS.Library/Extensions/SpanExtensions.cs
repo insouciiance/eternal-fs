@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Extensions;
@@ -34,4 +35,7 @@ public static class SpanExtensions
 
     public static bool Contains(in this ReadOnlySpan<byte> span, in ReadOnlySpan<byte> subSpan)
         => span.IndexOf(subSpan) != -1;
+
+    public static string GetString(in this ReadOnlySpan<byte> span)
+        => Encoding.UTF8.GetString(span);
 }

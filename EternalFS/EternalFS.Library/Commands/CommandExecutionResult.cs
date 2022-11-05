@@ -2,7 +2,9 @@
 
 public class CommandExecutionResult
 {
-    public int ExitCode { get; init; }
+    public CommandExecutionState State { get; init; }
+
+    public object?[]? MessageArguments { get; init; }
 
     public bool ShouldExit { get; init; }
 }

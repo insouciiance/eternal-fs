@@ -14,7 +14,15 @@ public partial class StatCommand
         ReadOnlySpan<byte> subEntryName = context.ValueSpan.SplitIndex();
 
         EternalFileSystemManager manager = new(context.FileSystem);
-        EternalFileSystemFatEntry directory = manager.OpenDirectory(context.CurrentDirectory);
+
+        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directory))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantOpenDirectory,
+                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+            };
+        }
 
         string entryString = Encoding.UTF8.GetString(subEntryName);
         

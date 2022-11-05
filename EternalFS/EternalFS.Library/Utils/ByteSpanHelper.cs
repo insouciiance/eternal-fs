@@ -18,4 +18,7 @@ public static partial class ByteSpanHelper
 
     [ByteSpan("=")]
     public static partial ReadOnlySpan<byte> Equals();
+
+    [ByteSpan("/")]
+    public static partial ReadOnlySpan<byte> ForwardSlash();
 }

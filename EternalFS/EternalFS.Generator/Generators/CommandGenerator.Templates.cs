@@ -40,8 +40,7 @@ partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{comma
     {{
         Documentation = {(commandSummary is { } ? @$"new(""{commandSummary}"")" : "null")}
     }};
-}}
-";
+}}";
     }
 
     private static string GenerateCommandManagerType(ImmutableArray<INamedTypeSymbol> commands, string commandManagerTypeName)
@@ -102,26 +101,32 @@ public static partial class {commandManagerTypeName}
             {{
                 _ when result is not null => result,
 {string.Join("\n", commands.Select(SwitchCommand))}
-                _ => HandleDefault(ref context, $@""Unable to process """"{{Encoding.UTF8.GetString(commandSpan)}}"""": command not found."")
+                _ => HandleDefault(ref context, CommandExecutionState.CommandNotFound, Encoding.UTF8.GetString(commandSpan))
             }};
         }}
         catch (Exception e)
         {{
-            result = HandleDefault(ref context, e.Message);
+#if DEBUG
+            result = HandleDefault(ref context, CommandExecutionState.ExecutionException, e.Message, e.StackTrace);
+#else
+            result = HandleDefault(ref context, CommandExecutionState.ExecutionException, e.Message);
+#endif
         }}
 
         PostProcessCommand(ref context, buffer, ref result);
 
         return result;
 
-        CommandExecutionResult HandleDefault(ref CommandExecutionContext context, string message)
+        CommandExecutionResult HandleDefault(ref CommandExecutionContext context, CommandExecutionState state, params object?[] messageArguments)
         {{
-            context.Writer.Append(message);
-            return new() {{ ExitCode = -1 }};
+            return new()
+            {{
+                State = state,
+                MessageArguments = messageArguments
+            }};
         }}
     }}
-}}
-";
+}}";
 
         static string SwitchCommand(INamedTypeSymbol command)
         {
@@ -176,9 +181,44 @@ public static partial class {commandManagerTypeName}
     private static CommandInfo GetInfo<T>()
         where T : ICommand
         => T.Info;
-}}
-";
+}}";
         static string GetCommandInfo(INamedTypeSymbol command) => $@"GetInfo<{command.Name}>()";
+    }
+
+    private static string GenerateCommandManagerCommandStates(INamedTypeSymbol commandStatesSymbol, string commandManagerTypeName)
+    {
+        var states = commandStatesSymbol.GetMembers().OfType<IFieldSymbol>();
+
+        Dictionary<string, string> statesMessages = new();
+
+        foreach (var state in states)
+        {
+            if (state.GetAttribute<CommandStateMessageAttribute>() is not { } attribute)
+                continue;
+
+            string message = (string)attribute.ConstructorArguments[0].Value!;
+            message = message.Replace(@"""", @"""""");
+            statesMessages.Add(state.Name, message);
+        }
+
+        IList<string> usings = new HashSet<string>()
+        {
+            typeof(Dictionary<,>).Namespace,
+            typeof(CommandExecutionState).Namespace,
+        }.OrderUsings();
+
+        return $@"
+{string.Join("\n", usings.Select(u => $"using {u};"))}
+
+#nullable enable
+
+public static partial class {commandManagerTypeName}
+{{
+    private static readonly Dictionary<CommandExecutionState, string> _executionStateMessages = new()
+    {{
+{string.Join("\n", statesMessages.Select(kvp => $@"        {{ CommandExecutionState.{kvp.Key}, @""{kvp.Value}"" }},"))}
+    }};
+}}";
     }
 
     private static string GetCommandName(INamedTypeSymbol command)

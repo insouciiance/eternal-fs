@@ -15,7 +15,7 @@ public partial class ManCommand
         if (commandSpan == ReadOnlySpan<byte>.Empty)
         {
             context.Writer.Append("Command name expected.");
-            return new() { ExitCode = -1 };
+            return new() { State = CommandExecutionState.Other };
         }
 
         string command = Encoding.UTF8.GetString(commandSpan);
@@ -27,6 +27,6 @@ public partial class ManCommand
         }
 
         context.Writer.Append($@"Can't find documentation for ""{command}"".");
-        return new() { ExitCode = -1 };
+        return new() { State = CommandExecutionState.Other };
     }
 }

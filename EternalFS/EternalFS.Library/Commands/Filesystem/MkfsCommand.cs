@@ -22,10 +22,10 @@ public partial class MkfsCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Name(), out var nameSpan))
-            return new() { ExitCode = -1 };
+            return new() { State = CommandExecutionState.Other };
 
         if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Size(), out var sizeSpan))
-            return new() { ExitCode = -1 };
+            return new() { State = CommandExecutionState.Other };
 
         string name = Encoding.UTF8.GetString(nameSpan);
         int size = int.Parse(Encoding.UTF8.GetString(sizeSpan));

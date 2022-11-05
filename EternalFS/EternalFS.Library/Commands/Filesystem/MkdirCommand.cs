@@ -2,6 +2,7 @@
 using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -13,8 +14,26 @@ public partial class MkdirCommand
     {
         ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
 
+        if (!ValidationHelper.IsDirectoryValid(directoryName))
+        {
+            return new()
+            {
+                State = CommandExecutionState.InvalidDirectoryName,
+                MessageArguments = new[] { directoryName.GetString() }
+            };
+        }
+
         EternalFileSystemManager manager = new(context.FileSystem);
-        EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
+
+        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantOpenDirectory,
+                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+            };
+        }
+        
         manager.CreateDirectory(directoryName, directoryEntry);
 
         context.Writer.Append($"Created a directory {Encoding.UTF8.GetString(directoryName)}");

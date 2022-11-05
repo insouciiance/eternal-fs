@@ -3,6 +3,7 @@ using System.Linq;
 using EternalFS.Generator.Extensions;
 using EternalFS.Library.Commands;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EternalFS.Generator.Generators;
@@ -28,6 +29,9 @@ public partial class CommandGenerator : IIncrementalGenerator
             .Collect()
             .Select(static (symbols, _) => symbols.Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToImmutableArray());
 
+        var commandStatesProvider = context.CompilationProvider.Select(
+            static (compilation, _) => compilation.GetTypeByMetadataName(typeof(CommandExecutionState).FullName));
+
         context.RegisterSourceOutput(commandsProvider, static (context, commands) =>
         {
             foreach (var command in commands)
@@ -38,8 +42,19 @@ public partial class CommandGenerator : IIncrementalGenerator
             commandsProvider.Combine(commandManagerTypeNameProvider),
             static (context, data) =>
             {
-                context.AddFileSource($"{data.Right}.g.cs", GenerateCommandManagerType(data.Left, data.Right));
-                context.AddFileSource($"{data.Right}.infos.g.cs", GenerateCommandManagerCommandInfos(data.Left, data.Right));
+                var (commands, managerName) = data;
+
+                context.AddFileSource($"{managerName}.g.cs", GenerateCommandManagerType(commands, managerName));
+                context.AddFileSource($"{managerName}.infos.g.cs", GenerateCommandManagerCommandInfos(commands, managerName));
+            });
+
+        context.RegisterSourceOutput(
+            commandStatesProvider.Combine(commandManagerTypeNameProvider),
+            static (context, data) =>
+            {
+                var (commandStates, managerName) = data;
+
+                context.AddFileSource($"{managerName}.states.g.cs", GenerateCommandManagerCommandStates(commandStates, managerName));
             });
     }
 }

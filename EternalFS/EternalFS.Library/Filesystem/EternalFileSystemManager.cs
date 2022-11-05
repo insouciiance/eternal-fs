@@ -16,23 +16,30 @@ public class EternalFileSystemManager
         _fileSystem = fileSystem;
     }
 
-    public EternalFileSystemFatEntry OpenDirectory(List<string> directoryStack)
+    public bool TryOpenDirectory(List<string> directoryStack, out EternalFileSystemFatEntry entry)
     {
         EternalFileSystemFileStream currentStream = null!;
         EternalFileSystemFatEntry currentFatEntry = default;
 
-        foreach (string entry in directoryStack)
-            TraverseDirectories(entry);
+        foreach (string dirString in directoryStack)
+        {
+            if (!TryTraverseDirectories(dirString))
+            {
+                entry = default;
+                return false;
+            }
+        }
 
-        return currentFatEntry;
+        entry = currentFatEntry;
+        return true;
 
-        void TraverseDirectories(string directoryName)
+        bool TryTraverseDirectories(string directoryName)
         {
             if (directoryName == EternalFileSystemMounter.ROOT_DIRECTORY_NAME)
             {
                 currentStream = new EternalFileSystemFileStream(_fileSystem, EternalFileSystemMounter.RootDirectoryEntry);
                 currentFatEntry = EternalFileSystemMounter.RootDirectoryEntry;
-                return;
+                return true;
             }
 
             int entriesCount = currentStream.MarshalReadStructure<int>();
@@ -46,9 +53,11 @@ public class EternalFileSystemManager
                     currentStream.Dispose();
                     currentStream = new EternalFileSystemFileStream(_fileSystem, currentEntry.FatEntryReference);
                     currentFatEntry = currentEntry.FatEntryReference;
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
     }
 

@@ -2,6 +2,7 @@
 using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -13,8 +14,26 @@ public partial class CatCommand
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
 
+        if (!ValidationHelper.IsFilenameValid(fileName))
+        {
+            return new()
+            {
+                State = CommandExecutionState.InvalidFilename,
+                MessageArguments = new[] { fileName.GetString() }
+            };
+        }
+
         EternalFileSystemManager manager = new(context.FileSystem);
-        EternalFileSystemFatEntry directoryEntry = manager.OpenDirectory(context.CurrentDirectory);
+
+        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantOpenDirectory,
+                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+            };
+        }
+
         EternalFileSystemEntry fileEntry = manager.OpenFile(fileName, directoryEntry);
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry.FatEntryReference);

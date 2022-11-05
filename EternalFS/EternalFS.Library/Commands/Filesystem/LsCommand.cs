@@ -16,7 +16,15 @@ public partial class LsCommand
 
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        EternalFileSystemFatEntry currentDirectory = new EternalFileSystemManager(context.FileSystem).OpenDirectory(context.CurrentDirectory);
+        if (!new EternalFileSystemManager(context.FileSystem).TryOpenDirectory(context.CurrentDirectory, out var currentDirectory))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantOpenDirectory,
+                MessageArguments = new[] { string.Join('/', context.CurrentDirectory) }
+            };
+        }
+
         using EternalFileSystemFileStream stream = new(context.FileSystem, currentDirectory);
 
         int entriesCount = stream.MarshalReadStructure<int>();
