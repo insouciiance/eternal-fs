@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Commands.Miscellaneous;
 
@@ -8,7 +8,7 @@ public partial class EchoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        context.Writer.Append(Encoding.UTF8.GetString(context.ValueSpan));
+        context.Writer.Append(context.ValueSpan.GetString());
         return CommandExecutionResult.Default;
     }
 }

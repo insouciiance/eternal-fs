@@ -20,7 +20,7 @@ public partial class TouchCommand
 
         manager.CreateFile(fileName, directoryEntry);
 
-        context.Writer.Append($"Created a file {Encoding.UTF8.GetString(fileName)}");
+        context.Writer.Append($"Created a file {fileName.GetString()}");
 
         return CommandExecutionResult.Default;
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 
@@ -12,7 +11,7 @@ public partial class OpenfsCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileSpan = context.ValueSpan.SplitIndex();
-        string fileName = Encoding.UTF8.GetString(fileSpan);
+        string fileName = fileSpan.GetString();
 
         context.CurrentDirectory.Clear();
         context.CurrentDirectory.Add(EternalFileSystemMounter.ROOT_DIRECTORY_NAME);

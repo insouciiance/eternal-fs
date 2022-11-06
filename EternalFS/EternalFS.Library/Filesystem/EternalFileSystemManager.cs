@@ -48,6 +48,9 @@ public class EternalFileSystemManager
             {
                 var currentEntry = currentStream.MarshalReadStructure<EternalFileSystemEntry>();
 
+                if (!currentEntry.IsDirectory)
+                    continue;
+
                 if (Encoding.ASCII.GetString(currentEntry.SubEntryName).TrimEnd('\0') == directoryName)
                 {
                     currentStream.Dispose();
@@ -70,6 +73,9 @@ public class EternalFileSystemManager
         for (int i = 0; i < entriesCount; i++)
         {
             var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
+
+            if (currentEntry.IsDirectory)
+                continue;
 
             if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(fileName))
             {
@@ -169,6 +175,7 @@ public class EternalFileSystemManager
 
         bool TryDeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
         {
+            // TODO: support directories
             if (!TryOpenFile(fileName, directoryEntry, out var fileEntry))
                 return false;
 

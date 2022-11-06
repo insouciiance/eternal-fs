@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Commands.Miscellaneous;
@@ -18,7 +17,7 @@ public partial class ManCommand
             return new() { State = CommandExecutionState.Other };
         }
 
-        string command = Encoding.UTF8.GetString(commandSpan);
+        string command = commandSpan.GetString();
 
         if (CommandManager.CommandInfos.TryGetValue(command, out var info) && info.Documentation is { } doc)
         {

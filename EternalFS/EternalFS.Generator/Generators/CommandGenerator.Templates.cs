@@ -198,6 +198,7 @@ public static partial class {commandManagerTypeName}
 
             string message = (string)attribute.ConstructorArguments[0].Value!;
             message = message.Replace(@"""", @"""""");
+            message = message.Replace("\n", @""" + '\n' + """);
             statesMessages.Add(state.Name, message);
         }
 

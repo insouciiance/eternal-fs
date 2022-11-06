@@ -29,7 +29,7 @@ public partial class CatCommand
             return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
         if (!manager.TryOpenFile(fileName, directoryEntry, out var fileEntry))
-                return CommandExecutionResult.CantOpenFile(fileName);
+            return CommandExecutionResult.CantOpenFile(fileName);
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry.FatEntryReference);
 

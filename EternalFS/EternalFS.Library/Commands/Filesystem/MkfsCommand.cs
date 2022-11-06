@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Filesystem.Initializers;
 using EternalFS.Library.Utils;
@@ -27,13 +27,13 @@ public partial class MkfsCommand
         if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Size(), out var sizeSpan))
             return new() { State = CommandExecutionState.Other };
 
-        string name = Encoding.UTF8.GetString(nameSpan);
-        int size = int.Parse(Encoding.UTF8.GetString(sizeSpan));
+        string name = nameSpan.GetString();
+        int size = int.Parse(sizeSpan.GetString());
 
         IEternalFileSystemInitializer<EternalFileSystem> initializer;
 
         if (ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, FileName(), out var fileName))
-            initializer = new DiskEternalFileSystemInitializer(name, size, Encoding.UTF8.GetString(fileName));
+            initializer = new DiskEternalFileSystemInitializer(name, size, fileName.GetString());
         else
             initializer = new VirtualEternalFileSystemInitializer(name, size);
 

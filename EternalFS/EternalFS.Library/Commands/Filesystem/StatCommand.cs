@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 
@@ -18,7 +17,7 @@ public partial class StatCommand
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directory))
             return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
-        string entryString = Encoding.UTF8.GetString(subEntryName);
+        string entryString = subEntryName.GetString();
         
         if (EternalFileSystemHelper.TryLocateSubEntry(context.FileSystem, directory, subEntryName, out var subEntry))
             PrintEntryInfo(ref context, subEntry, entryString);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
@@ -20,7 +19,7 @@ public partial class CdCommand
         if (directoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()))
             stack.RemoveAt(context.CurrentDirectory.Count - 1);
         else
-            stack.Add(Encoding.UTF8.GetString(directoryName));
+            stack.Add(directoryName.GetString());
 
         EternalFileSystemManager manager = new(context.FileSystem);
         

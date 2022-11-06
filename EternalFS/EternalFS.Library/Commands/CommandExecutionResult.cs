@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Commands;
 
@@ -28,7 +28,7 @@ public class CommandExecutionResult
         return new()
         {
             State = CommandExecutionState.CantOpenFile,
-            MessageArguments = new object?[] { Encoding.UTF8.GetString(filename) }
+            MessageArguments = new object?[] { filename.GetString() }
         };
     }
 }

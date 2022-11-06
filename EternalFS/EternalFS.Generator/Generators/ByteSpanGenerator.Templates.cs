@@ -26,8 +26,7 @@ partial {GetTypeKindString(type)} {typeDeclarationName}
 {{
 {string.Join("\n\n", byteSpanMethods
     .Select(GetByteSpanMethod))}
-}}
-";
+}}";
 
         static string GetByteSpanMethod(IMethodSymbol method)
         {

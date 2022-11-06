@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
@@ -19,7 +18,7 @@ public partial class MkdirCommand
             return new()
             {
                 State = CommandExecutionState.InvalidDirectoryName,
-                MessageArguments = new[] { directoryName.GetString() }
+                MessageArguments = new object?[] { directoryName.GetString() }
             };
         }
 
@@ -30,7 +29,7 @@ public partial class MkdirCommand
 
         manager.CreateDirectory(directoryName, directoryEntry);
 
-        context.Writer.Append($"Created a directory {Encoding.UTF8.GetString(directoryName)}");
+        context.Writer.Append($"Created a directory {directoryName.GetString()}");
 
         return CommandExecutionResult.Default;
     }

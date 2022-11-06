@@ -23,7 +23,7 @@ public static partial class CommandManager
         ReadOnlySpan<byte> commandSpan = input[(spaceIndex + 1)..];
 
         if (context.FileSystem is null &&
-            CommandInfos.TryGetValue(Encoding.UTF8.GetString(commandSpan), out var info) &&
+            CommandInfos.TryGetValue(commandSpan.GetString(), out var info) &&
             info.NeedsFileSystem)
         {
             result = new() { State = CommandExecutionState.MissingFileSystem };
