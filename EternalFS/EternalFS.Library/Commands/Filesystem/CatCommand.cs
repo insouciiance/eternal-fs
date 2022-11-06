@@ -19,7 +19,7 @@ public partial class CatCommand
             return new()
             {
                 State = CommandExecutionState.InvalidFilename,
-                MessageArguments = new[] { fileName.GetString() }
+                MessageArguments = new object?[] { fileName.GetString() }
             };
         }
 
@@ -28,7 +28,8 @@ public partial class CatCommand
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
             return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
-        EternalFileSystemEntry fileEntry = manager.OpenFile(fileName, directoryEntry);
+        if (!manager.TryOpenFile(fileName, directoryEntry, out var fileEntry))
+                return CommandExecutionResult.CantOpenFile(fileName);
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry.FatEntryReference);
 

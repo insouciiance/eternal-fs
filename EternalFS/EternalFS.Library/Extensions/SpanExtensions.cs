@@ -36,6 +36,6 @@ public static class SpanExtensions
     public static bool Contains(in this ReadOnlySpan<byte> span, in ReadOnlySpan<byte> subSpan)
         => span.IndexOf(subSpan) != -1;
 
-    public static string GetString(in this ReadOnlySpan<byte> span)
-        => Encoding.UTF8.GetString(span);
+    public static string GetString(in this ReadOnlySpan<byte> span, Encoding? encoding = null)
+        => (encoding ?? Encoding.UTF8).GetString(span);
 }

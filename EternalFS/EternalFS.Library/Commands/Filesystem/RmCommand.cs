@@ -8,7 +8,6 @@ namespace EternalFS.Library.Commands.Filesystem;
 [CommandDoc("Deletes a specified file.")]
 public partial class RmCommand
 {
-    // TODO: handle deletion correctly.
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
@@ -18,7 +17,14 @@ public partial class RmCommand
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
             return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
-        manager.DeleteFile(fileName, directoryEntry);
+        if (!manager.TryDeleteFile(fileName, directoryEntry))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantDeleteFile,
+                MessageArguments = new object?[] { fileName.GetString() }
+            };
+        }
 
         return CommandExecutionResult.Default;
     }

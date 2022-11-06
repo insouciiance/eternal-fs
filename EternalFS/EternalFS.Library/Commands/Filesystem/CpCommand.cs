@@ -19,9 +19,16 @@ public partial class CpCommand
         if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
             return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
 
-        manager.CopyFile(from, to, directoryEntry);
+        if (!manager.TryCopyFile(from, to, directoryEntry))
+        {
+            return new()
+            {
+                State = CommandExecutionState.CantCopyFile,
+                MessageArguments = new object?[] { from.GetString(), to.GetString() }
+            };
+        }
 
-        context.Writer.Append($"Copied {Encoding.UTF8.GetString(from)} to {Encoding.UTF8.GetString(to)}");
+        context.Writer.Append($"Copied {from.GetString()} to {to.GetString()}");
 
         return CommandExecutionResult.Default;
     }

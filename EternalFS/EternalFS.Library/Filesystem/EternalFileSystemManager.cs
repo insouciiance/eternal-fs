@@ -61,7 +61,7 @@ public class EternalFileSystemManager
         }
     }
 
-    public EternalFileSystemEntry OpenFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
+    public bool TryOpenFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry, out EternalFileSystemEntry fileEntry)
     {
         using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
@@ -72,10 +72,14 @@ public class EternalFileSystemManager
             var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
 
             if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(fileName))
-                return currentEntry;
+            {
+                fileEntry = currentEntry;
+                return true;
+            }
         }
 
-        return default;
+        fileEntry = default;
+        return false;
     }
 
     public EternalFileSystemFatEntry CreateDirectory(in ReadOnlySpan<byte> directoryName, EternalFileSystemFatEntry directoryEntry)
@@ -128,12 +132,11 @@ public class EternalFileSystemManager
         return entry;
     }
 
-    public void DeleteFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
+    public bool TryDeleteFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
     {
-        DeleteFatEntryChain(fileName);
-        DeleteDirectoryEntry(fileName);
+        return TryDeleteFatEntryChain(fileName) && TryDeleteDirectoryEntry(fileName);
 
-        void DeleteDirectoryEntry(in ReadOnlySpan<byte> fileName)
+        bool TryDeleteDirectoryEntry(in ReadOnlySpan<byte> fileName)
         {
             using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
@@ -158,32 +161,41 @@ public class EternalFileSystemManager
                     position += EternalFileSystemEntry.EntrySize;
                 }
 
-                break;
+                return true;
             }
+
+            return false;
         }
 
-        void DeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
+        bool TryDeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
         {
-            EternalFileSystemFatEntry fileEntry = OpenFile(fileName, directoryEntry).FatEntryReference;
+            if (!TryOpenFile(fileName, directoryEntry, out var fileEntry))
+                return false;
+
+            EternalFileSystemFatEntry fatRef = fileEntry.FatEntryReference;
 
             using Stream stream = _fileSystem.GetStream();
 
-            while (fileEntry != EternalFileSystemMounter.FatTerminator)
+            while (fatRef != EternalFileSystemMounter.FatTerminator)
             {
-                int offset = EternalFileSystemHelper.GetFatEntryOffset(fileEntry);
+                int offset = EternalFileSystemHelper.GetFatEntryOffset(fatRef);
 
                 stream.Seek(offset, SeekOrigin.Begin);
-                fileEntry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
+                fatRef = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
 
                 stream.Seek(offset, SeekOrigin.Begin);
                 stream.MarshalWriteStructure(EternalFileSystemMounter.EmptyCluster);
             }
+
+            return true;
         }
     }
 
-    public void CopyFile(in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to, EternalFileSystemFatEntry directoryEntry)
+    public bool TryCopyFile(in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to, EternalFileSystemFatEntry directoryEntry)
     {
-        EternalFileSystemEntry fromEntry = OpenFile(from, directoryEntry);
+        if (!TryOpenFile(from, directoryEntry, out var fromEntry))
+            return false;
+
         EternalFileSystemEntry toEntry = CreateFile(to, directoryEntry);
 
         using EternalFileSystemFileStream fromStream = new(_fileSystem, fromEntry.FatEntryReference);
@@ -191,6 +203,7 @@ public class EternalFileSystemManager
 
         fromStream.CopyTo(toStream);
         OverwriteFileEntry(toEntry.FatEntryReference, directoryEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
+        return true;
     }
 
     public void WriteFile(in ReadOnlySpan<byte> content, EternalFileSystemFatEntry fileEntry, EternalFileSystemFatEntry directoryEntry)

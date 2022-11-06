@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace EternalFS.Library.Commands;
 
@@ -17,7 +19,16 @@ public class CommandExecutionResult
         return new()
         {
             State = CommandExecutionState.CantOpenDirectory,
-            MessageArguments = new[] { string.Join('/', stack) }
+            MessageArguments = new object?[] { string.Join('/', stack) }
+        };
+    }
+
+    public static CommandExecutionResult CantOpenFile(in ReadOnlySpan<byte> filename)
+    {
+        return new()
+        {
+            State = CommandExecutionState.CantOpenFile,
+            MessageArguments = new object?[] { Encoding.UTF8.GetString(filename) }
         };
     }
 }

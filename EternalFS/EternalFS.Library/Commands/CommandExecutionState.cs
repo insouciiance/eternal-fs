@@ -19,8 +19,14 @@ public enum CommandExecutionState
     [CommandStateMessage(@"This command needs a file system to operate on, no file system was attached.")]
     MissingFileSystem,
 
-    [CommandStateMessage(@"Unable to process ""{0}"": command not found")]
+    [CommandStateMessage(@"Unable to process ""{0}"": command not found.")]
     CommandNotFound,
+
+    [CommandStateMessage(@"Unable to copy ""{0}"" into ""{1}"".")]
+    CantCopyFile,
+
+    [CommandStateMessage(@"Unable to delete ""{0}"".")]
+    CantDeleteFile,
 
 #if DEBUG
     [CommandStateMessage("{0}\n{1}")]
