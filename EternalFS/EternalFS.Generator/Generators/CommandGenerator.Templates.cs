@@ -67,11 +67,11 @@ public static partial class {commandManagerTypeName}
     private const int MAX_COMMAND_LENGTH = 4096;
 
 {string.Join("\n\n", commands
-    .Select(c => $"    private static ReadOnlySpan<byte> {GetCommandSpanName(c)} => new byte[] {{ {GetCommandSpanBytes(c)} }};"))}
+    .Select(c => $@"    private static ReadOnlySpan<byte> {GetCommandSpanName(c)} => ""{GetCommandName(c)}""u8;"))}
 
-    static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result);
+    static partial void PreprocessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult? result);
     
-    static partial void PostProcessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result);
+    static partial void PostProcessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult result);
 
     public static CommandExecutionResult ExecuteCommand(Stream source, ref CommandExecutionContext context)
     {{
@@ -149,12 +149,6 @@ public static partial class {commandManagerTypeName}
         {
             var commandName = GetCommandName(command);
             return $"{commandName}Span";
-        }
-
-        static string GetCommandSpanBytes(INamedTypeSymbol command)
-        {
-            var commandName = GetCommandName(command);
-            return string.Join(", ", Encoding.UTF8.GetBytes(commandName));
         }
     }
 

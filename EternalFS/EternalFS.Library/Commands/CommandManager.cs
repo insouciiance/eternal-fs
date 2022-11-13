@@ -15,7 +15,7 @@ public static partial class CommandManager
     [ByteSpan(" > ")]
     private static partial ReadOnlySpan<byte> WriteDelimiter();
 
-    static partial void PreprocessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
+    static partial void PreprocessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
     {
         context.ValueSpan = context.ValueSpan.SplitIndex(WriteDelimiter());
 
@@ -37,7 +37,7 @@ public static partial class CommandManager
         result = ManCommand.Instance.Execute(ref context);
     }
 
-    static partial void PostProcessCommand(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
+    static partial void PostProcessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
     {
         HandleFileDelimiter(ref context, input, ref result);
         HandleInvalidExecutionStatus(ref context, ref result);

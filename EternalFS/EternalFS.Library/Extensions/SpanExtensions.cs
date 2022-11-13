@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using EternalFS.Library.Utils;
 
@@ -6,7 +7,7 @@ namespace EternalFS.Library.Extensions;
 
 public static class SpanExtensions
 {
-    public static ReadOnlySpan<byte> SplitIndex(in this ReadOnlySpan<byte> span, in ReadOnlySpan<byte> delimiter, int index = 0)
+    public static ReadOnlySpan<byte> SplitIndex(this scoped in ReadOnlySpan<byte> span, scoped in ReadOnlySpan<byte> delimiter, int index = 0)
     {
         if (index < 0)
             throw new ArgumentOutOfRangeException(nameof(index));
@@ -38,4 +39,22 @@ public static class SpanExtensions
 
     public static string GetString(in this ReadOnlySpan<byte> span, Encoding? encoding = null)
         => (encoding ?? Encoding.UTF8).GetString(span);
+
+    public static int Hash<T>(this in ReadOnlySpan<T?> span)
+    {
+        if (span == ReadOnlySpan<T?>.Empty)
+            return 0;
+
+        int hash = 17;
+
+        foreach (var element in span)
+        {
+            if (element is null)
+                continue;
+
+            hash = hash * 31 + EqualityComparer<T>.Default.GetHashCode(element);
+        }
+
+        return hash;
+    }
 }

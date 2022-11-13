@@ -3,7 +3,6 @@ using System.Linq;
 using EternalFS.Generator.Extensions;
 using EternalFS.Library.Commands;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EternalFS.Generator.Generators;
@@ -30,7 +29,7 @@ public partial class CommandGenerator : IIncrementalGenerator
             .Select(static (symbols, _) => symbols.Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToImmutableArray());
 
         var commandStatesProvider = context.CompilationProvider.Select(
-            static (compilation, _) => compilation.GetTypeByMetadataName(typeof(CommandExecutionState).FullName));
+            static (compilation, _) => compilation.GetTypeByMetadataName(typeof(CommandExecutionState).FullName)!);
 
         context.RegisterSourceOutput(commandsProvider, static (context, commands) =>
         {
