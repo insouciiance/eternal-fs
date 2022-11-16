@@ -5,41 +5,34 @@ using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Utils;
 
-namespace EternalFS.Library.Filesystem;
+namespace EternalFS.Library.Filesystem.Accessors;
 
-public class EternalFileSystemManager
+public class EternalFileSystemManager : IEternalFileSystemAccessor
 {
-    private readonly EternalFileSystem _fileSystem;
+    private EternalFileSystem _fileSystem = null!;
 
-    public EternalFileSystemManager(EternalFileSystem fileSystem)
+    public void Initialize(EternalFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
     }
 
-    public bool TryOpenDirectory(List<string> directoryStack, out EternalFileSystemFatEntry entry)
+    public EternalFileSystemEntry LocateDirectory(ICollection<string> directoryStack)
     {
         EternalFileSystemFileStream currentStream = null!;
-        EternalFileSystemFatEntry currentFatEntry = default;
+        EternalFileSystemEntry resultEntry = default;
 
         foreach (string dirString in directoryStack)
-        {
-            if (!TryTraverseDirectories(dirString))
-            {
-                entry = default;
-                return false;
-            }
-        }
+            TraverseDirectories(dirString);
 
-        entry = currentFatEntry;
-        return true;
+        return resultEntry;
 
-        bool TryTraverseDirectories(string directoryName)
+        void TraverseDirectories(string directoryName)
         {
             if (directoryName == EternalFileSystemMounter.ROOT_DIRECTORY_NAME)
             {
                 currentStream = new EternalFileSystemFileStream(_fileSystem, EternalFileSystemMounter.RootDirectoryEntry);
-                currentFatEntry = EternalFileSystemMounter.RootDirectoryEntry;
-                return true;
+                resultEntry = new EternalFileSystemEntry(ByteSpanHelper.ForwardSlash(), EternalFileSystemMounter.RootDirectoryEntry);
+                return;
             }
 
             int entriesCount = currentStream.MarshalReadStructure<int>();
@@ -55,16 +48,16 @@ public class EternalFileSystemManager
                 {
                     currentStream.Dispose();
                     currentStream = new EternalFileSystemFileStream(_fileSystem, currentEntry.FatEntryReference);
-                    currentFatEntry = currentEntry.FatEntryReference;
-                    return true;
+                    resultEntry = currentEntry;
+                    return;
                 }
             }
 
-            return false;
+            throw new EternalFileSystemException(EternalFileSystemState.CantOpenDirectory, directoryName);
         }
     }
 
-    public bool TryOpenFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry, out EternalFileSystemEntry fileEntry)
+    public EternalFileSystemEntry LocateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName)
     {
         using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
@@ -74,21 +67,24 @@ public class EternalFileSystemManager
         {
             var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
 
-            if (currentEntry.IsDirectory)
-                continue;
-
-            if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(fileName))
-            {
-                fileEntry = currentEntry;
-                return true;
-            }
+            if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(subEntryName))
+                return currentEntry;
         }
 
-        fileEntry = default;
-        return false;
+        throw new EternalFileSystemException(EternalFileSystemState.CantLocateSubEntry, subEntryName.GetString());
     }
 
-    public EternalFileSystemFatEntry CreateDirectory(in ReadOnlySpan<byte> directoryName, EternalFileSystemFatEntry directoryEntry)
+    public EternalFileSystemEntry LocateFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName)
+    {
+        var subEntry = LocateSubEntry(directoryEntry, subEntryName);
+
+        if (subEntry.IsDirectory)
+            throw new EternalFileSystemException(EternalFileSystemState.CantOpenFile, subEntryName.GetString());
+
+        return subEntry;
+    }
+
+    public EternalFileSystemEntry CreateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entrySpan, bool isDirectory = false)
     {
         using Stream fsStream = _fileSystem.GetStream();
 
@@ -102,47 +98,33 @@ public class EternalFileSystemManager
         for (int i = 0; i < entriesCount; i++)
             stream.MarshalReadStructure<EternalFileSystemEntry>();
 
-        EternalFileSystemEntry entry = new(directoryName, newEntry);
+        EternalFileSystemEntry entry = new(entrySpan, newEntry, isDirectory);
         stream.MarshalWriteStructure(entry);
 
-        using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newEntry);
+        if (isDirectory)
+        {
+            using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newEntry);
 
-        newDirectoryStream.MarshalWriteStructure(2);
-        newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newEntry));
-        newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.ParentDirectory(), directoryEntry));
-
-        return newEntry;
-    }
-
-    public EternalFileSystemEntry CreateFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
-    {
-        using Stream fsStream = _fileSystem.GetStream();
-
-        fsStream.Seek(EternalFileSystemHeader.HeaderSize, SeekOrigin.Begin);
-
-        if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newEntry))
-            throw new OutOfMemoryException();
-
-        using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
-
-        int entriesCount = stream.MarshalReadStructure<int>();
-
-        for (int i = 0; i < entriesCount; i++)
-            stream.MarshalReadStructure<EternalFileSystemEntry>();
-
-        EternalFileSystemEntry entry = new(0, fileName, newEntry);
-        stream.MarshalWriteStructure(entry);
-
-        OverwriteEntriesCount(stream);
+            newDirectoryStream.MarshalWriteStructure(2);
+            newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newEntry));
+            newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.ParentDirectory(), directoryEntry));
+        }
 
         return entry;
     }
 
-    public bool TryDeleteFile(in ReadOnlySpan<byte> fileName, EternalFileSystemFatEntry directoryEntry)
+    public void DeleteSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entrySpan)
     {
-        return TryDeleteFatEntryChain(fileName) && TryDeleteDirectoryEntry(fileName);
+        var entry = LocateFile(directoryEntry, entrySpan);
 
-        bool TryDeleteDirectoryEntry(in ReadOnlySpan<byte> fileName)
+        // TODO: support directories
+        if (entry.IsDirectory)
+            throw new NotSupportedException();
+
+        DeleteFatEntryChain(entrySpan);
+        DeleteDirectoryEntry(entrySpan);
+
+        void DeleteDirectoryEntry(in ReadOnlySpan<byte> fileName)
         {
             using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
 
@@ -167,17 +149,15 @@ public class EternalFileSystemManager
                     position += EternalFileSystemEntry.EntrySize;
                 }
 
-                return true;
+                return;
             }
 
-            return false;
+            throw new EternalFileSystemException(EternalFileSystemState.CantDeleteFile, fileName.GetString());
         }
 
-        bool TryDeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
+        void DeleteFatEntryChain(in ReadOnlySpan<byte> fileName)
         {
-            // TODO: support directories
-            if (!TryOpenFile(fileName, directoryEntry, out var fileEntry))
-                return false;
+            var fileEntry = LocateFile(directoryEntry, fileName);
 
             EternalFileSystemFatEntry fatRef = fileEntry.FatEntryReference;
 
@@ -193,35 +173,33 @@ public class EternalFileSystemManager
                 stream.Seek(offset, SeekOrigin.Begin);
                 stream.MarshalWriteStructure(EternalFileSystemMounter.EmptyCluster);
             }
-
-            return true;
         }
     }
 
-    public bool TryCopyFile(in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to, EternalFileSystemFatEntry directoryEntry)
+    public void CopyFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
     {
-        if (!TryOpenFile(from, directoryEntry, out var fromEntry))
-            return false;
+        var fromEntry = LocateFile(directoryEntry, from);
 
-        EternalFileSystemEntry toEntry = CreateFile(to, directoryEntry);
+        EternalFileSystemEntry toEntry = CreateSubEntry(directoryEntry, to, true);
 
         using EternalFileSystemFileStream fromStream = new(_fileSystem, fromEntry.FatEntryReference);
         using EternalFileSystemFileStream toStream = new(_fileSystem, toEntry.FatEntryReference);
 
         fromStream.CopyTo(toStream);
         OverwriteFileEntry(toEntry.FatEntryReference, directoryEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
-        return true;
     }
 
-    public void WriteFile(in ReadOnlySpan<byte> content, EternalFileSystemFatEntry fileEntry, EternalFileSystemFatEntry directoryEntry)
+    public void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, in ReadOnlySpan<byte> content)
     {
-        using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry))
+        var fileEntry = LocateFile(directoryEntry, fileName);
+
+        using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry.FatEntryReference))
         {
             fileStream.Write(content);
         }
 
         int length = content.Length;
-        OverwriteFileEntry(fileEntry, directoryEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
+        OverwriteFileEntry(fileEntry.FatEntryReference, directoryEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
     }
 
     private void OverwriteFileEntry(

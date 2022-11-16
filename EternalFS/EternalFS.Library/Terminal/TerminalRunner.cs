@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using EternalFS.Library.Commands;
+using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Terminal;
 
@@ -14,7 +15,11 @@ public class TerminalRunner
     public void Run()
     {
         CommandExecutionResult commandResult;
-        CommandExecutionContext context = new();
+        
+        CommandExecutionContext context = new()
+        {
+            Accessor = new EternalFileSystemManager()
+        };
 
         OnStart?.Invoke(ref context);
 

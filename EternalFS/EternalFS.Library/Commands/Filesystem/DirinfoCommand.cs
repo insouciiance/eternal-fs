@@ -9,12 +9,9 @@ public partial class DirinfoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
+        var entry = context.Accessor.LocateDirectory(context.CurrentDirectory);
 
-        if (!new EternalFileSystemManager(context.FileSystem).TryOpenDirectory(context.CurrentDirectory, out var entry))
-            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
-
-        using Stream stream = new EternalFileSystemFileStream(context.FileSystem, entry);
-
+        using Stream stream = new EternalFileSystemFileStream(context.FileSystem, entry.FatEntryReference);
         context.Writer.Append($"Subentries count: {stream.ReadByte()}");
 
         return CommandExecutionResult.Default;

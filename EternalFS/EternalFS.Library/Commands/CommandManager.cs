@@ -2,6 +2,7 @@
 using System.Text;
 using EternalFS.Library.Commands;
 using EternalFS.Library.Commands.Miscellaneous;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
@@ -25,10 +26,7 @@ public static partial class CommandManager
         if (context.FileSystem is null &&
             CommandInfos.TryGetValue(commandSpan.GetString(), out var info) &&
             info.NeedsFileSystem)
-        {
-            result = new() { State = CommandExecutionState.MissingFileSystem };
-            return;
-        }
+            throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
         if (!context.ValueSpan.Contains(Help()))
             return;
@@ -40,9 +38,8 @@ public static partial class CommandManager
     static partial void PostProcessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
     {
         HandleFileDelimiter(ref context, input, ref result);
-        HandleInvalidExecutionStatus(ref context, ref result);
 
-        void HandleFileDelimiter(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
+        static void HandleFileDelimiter(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
         {
             ReadOnlySpan<byte> filename = input.SplitIndex(WriteDelimiter(), 1);
 
@@ -50,49 +47,17 @@ public static partial class CommandManager
                 return;
 
             if (!ValidationHelper.IsFilenameValid(filename))
-            {
-                result = new()
-                {
-                    State = CommandExecutionState.InvalidFilename,
-                    MessageArguments = new[] { filename.GetString() }
-                };
-
-                context.Writer.Clear();
-
-                return;
-            }
+                throw new EternalFileSystemException(EternalFileSystemState.InvalidFilename, filename.GetString());
 
             if (context.FileSystem is null)
-            {
-                result = new() { State = CommandExecutionState.MissingFileSystem };
-                return;
-            }
+                throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
-            EternalFileSystemManager manager = new(context.FileSystem);
+            var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
 
-            if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-            {
-                result = CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
-                context.Writer.Clear();
-                return;
-            }
-
-            EternalFileSystemFatEntry fileEntry = manager.CreateFile(filename, directoryEntry).FatEntryReference;
-
-            manager.WriteFile(Encoding.UTF8.GetBytes(context.Writer.ToString()), fileEntry, directoryEntry);
+            context.Accessor.CreateSubEntry(directoryEntry.FatEntryReference, filename, false);
+            context.Accessor.WriteFile(directoryEntry.FatEntryReference, filename, Encoding.UTF8.GetBytes(context.Writer.ToString()));
+            
             context.Writer.Clear();
-        }
-
-        void HandleInvalidExecutionStatus(ref CommandExecutionContext context, ref CommandExecutionResult result)
-        {
-            if (result.State is CommandExecutionState.Valid or CommandExecutionState.Other)
-                return;
-
-            string formattedMessage = _executionStateMessages.TryGetValue(result.State, out var message)
-                    ? string.Format(message, result.MessageArguments ?? Array.Empty<object?>())
-                    : $"The command failed to execute: status {result.State} (code {(int)result.State}).";
-
-            context.Writer.Append(formattedMessage);
         }
     }
 }

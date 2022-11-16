@@ -14,20 +14,11 @@ public partial class MkdirCommand
         ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
 
         if (!ValidationHelper.IsDirectoryValid(directoryName))
-        {
-            return new()
-            {
-                State = CommandExecutionState.InvalidDirectoryName,
-                MessageArguments = new object?[] { directoryName.GetString() }
-            };
-        }
+            throw new EternalFileSystemException(EternalFileSystemState.InvalidDirectoryName, directoryName.GetString());
 
-        EternalFileSystemManager manager = new(context.FileSystem);
+        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
 
-        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
-
-        manager.CreateDirectory(directoryName, directoryEntry);
+        context.Accessor.CreateSubEntry(directoryEntry.FatEntryReference, directoryName, true);
 
         context.Writer.Append($"Created a directory {directoryName.GetString()}");
 

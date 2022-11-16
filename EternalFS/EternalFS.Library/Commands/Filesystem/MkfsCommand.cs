@@ -1,4 +1,5 @@
 ﻿using System;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Filesystem.Initializers;
@@ -22,10 +23,10 @@ public partial class MkfsCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Name(), out var nameSpan))
-            return new() { State = CommandExecutionState.Other };
+            throw new CommandExecutionException(CommandExecutionState.Other);
 
         if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Size(), out var sizeSpan))
-            return new() { State = CommandExecutionState.Other };
+            throw new CommandExecutionException(CommandExecutionState.Other);
 
         string name = nameSpan.GetString();
         int size = int.Parse(sizeSpan.GetString());
@@ -42,6 +43,7 @@ public partial class MkfsCommand
 
         EternalFileSystemMounter.Mount(initializer);
         context.FileSystem = initializer.CreateFileSystem();
+        context.Accessor.Initialize(context.FileSystem);
 
         return CommandExecutionResult.Default;
     }

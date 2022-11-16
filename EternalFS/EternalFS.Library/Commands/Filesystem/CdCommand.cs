@@ -21,13 +21,14 @@ public partial class CdCommand
         else
             stack.Add(directoryName.GetString());
 
-        EternalFileSystemManager manager = new(context.FileSystem);
-        
-        if (!manager.TryOpenDirectory(stack, out _))
+        try
         {
-            var result = CommandExecutionResult.CantOpenDirectory(stack);
+            context.Accessor.LocateDirectory(stack);
+        }
+        catch(EternalFileSystemException)
+        {
             stack.RemoveAt(stack.Count - 1);
-            return result;
+            throw;
         }
 
         return CommandExecutionResult.Default;

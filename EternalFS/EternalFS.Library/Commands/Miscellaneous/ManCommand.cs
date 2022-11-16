@@ -1,4 +1,5 @@
 ﻿using System;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Commands.Miscellaneous;
@@ -14,7 +15,7 @@ public partial class ManCommand
         if (commandSpan == ReadOnlySpan<byte>.Empty)
         {
             context.Writer.Append("Command name expected.");
-            return new() { State = CommandExecutionState.Other };
+            throw new CommandExecutionException(CommandExecutionState.Other);
         }
 
         string command = commandSpan.GetString();
@@ -25,7 +26,7 @@ public partial class ManCommand
             return CommandExecutionResult.Default;
         }
 
-        context.Writer.Append($@"Can't find documentation for ""{command}"".");
-        return new() { State = CommandExecutionState.Other };
+        context.Writer.AppendLine($@"Can't find documentation for ""{command}"".");
+        throw new CommandExecutionException(CommandExecutionState.Other);
     }
 }

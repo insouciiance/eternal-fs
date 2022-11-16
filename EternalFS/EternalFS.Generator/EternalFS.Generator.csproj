@@ -18,9 +18,11 @@
   <ItemGroup>
     <Compile Include="../EternalFS.Library/Commands/CommandAttribute.cs" LinkBase="EternalFS.Library/Commands" />
     <Compile Include="../EternalFS.Library/Commands/CommandDocAttribute.cs" LinkBase="EternalFS.Library/Commands" />
-    <Compile Include="../EternalFS.Library/Commands/CommandStateMessageAttribute.cs" LinkBase="EternalFS.Library/Commands" />
     <Compile Include="../EternalFS.Library/Commands/CommandExecutionState.cs" LinkBase="EternalFS.Library/Commands" />
-    <Compile Include="../EternalFS.Library/Utils/ByteSpanAttribute.cs" LinkBase="EternalFS.Library/Commands" />
+
+    <Compile Include="../EternalFS.Library/Utils/ByteSpanAttribute.cs" LinkBase="EternalFS.Library/Utils" />
+    <Compile Include="../EternalFS.Library/Utils/StringMapAttribute.cs" LinkBase="EternalFS.Library/Utils" />
+    <Compile Include="../EternalFS.Library/Utils/MapAttribute.cs" LinkBase="EternalFS.Library/Utils" />
   </ItemGroup>
 
 </Project>

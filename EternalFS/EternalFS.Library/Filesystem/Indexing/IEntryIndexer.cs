@@ -1,5 +1,5 @@
 ﻿using System;
-using EternalFS.Library.Commands;
+using System.Collections.Generic;
 
 namespace EternalFS.Library.Filesystem.Indexing;
 
@@ -7,9 +7,10 @@ public interface IEntryIndexer
 {
     void Initialize(EternalFileSystem fileSystem);
 
-    bool TryLocateEntry(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> entryName, out EternalFileSystemEntry entry);
+    bool TryLocateDirectory(ICollection<string> directoryStack, out EternalFileSystemEntry entry);
 
-    void AddEntry(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> entryName);
+    bool TryLocateEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName, out EternalFileSystemEntry entry);
 
-    void RemoveEntry(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> entryName);
+    void RecordChange(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName, EntryChangeKind changeKind);
 }
+ 

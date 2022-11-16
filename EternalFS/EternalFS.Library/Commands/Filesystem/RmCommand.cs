@@ -1,6 +1,7 @@
 ﻿using System;
+using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem;
+using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -11,20 +12,8 @@ public partial class RmCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
-
-        EternalFileSystemManager manager = new(context.FileSystem);
-
-        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
-
-        if (!manager.TryDeleteFile(fileName, directoryEntry))
-        {
-            return new()
-            {
-                State = CommandExecutionState.CantDeleteFile,
-                MessageArguments = new object?[] { fileName.GetString() }
-            };
-        }
+        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
+        context.Accessor.DeleteSubEntry(directoryEntry.FatEntryReference, fileName);
 
         return CommandExecutionResult.Default;
     }

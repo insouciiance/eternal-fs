@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Runtime.InteropServices;
 
 namespace EternalFS.Library.Filesystem;
@@ -20,13 +19,13 @@ public readonly struct EternalFileSystemEntry
 
     public readonly EternalFileSystemFatEntry FatEntryReference;
 
-    public EternalFileSystemEntry(in ReadOnlySpan<byte> subEntryName, EternalFileSystemFatEntry fatEntryReference)
-        : this(true, 0, subEntryName, fatEntryReference) { }
+    public EternalFileSystemEntry(in ReadOnlySpan<byte> subEntryName, EternalFileSystemFatEntry fatEntryReference, bool isDirectory = false)
+        : this(0, subEntryName, fatEntryReference, isDirectory) { }
 
     public EternalFileSystemEntry(int size, in ReadOnlySpan<byte> subEntryName, EternalFileSystemFatEntry fatEntryReference)
-        : this(false, size, subEntryName, fatEntryReference) { }
+        : this(size, subEntryName, fatEntryReference, false) { }
 
-    private EternalFileSystemEntry(bool isDirectory, int size, in ReadOnlySpan<byte> subEntryName, EternalFileSystemFatEntry fatEntryReference)
+    private EternalFileSystemEntry(int size, in ReadOnlySpan<byte> subEntryName, EternalFileSystemFatEntry fatEntryReference, bool isDirectory)
     {
         IsDirectory = isDirectory;
         Size = size;

@@ -47,6 +47,7 @@ partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{comma
     {
         IList<string> usings = new HashSet<string>(CollectUsings(commands))
         {
+            "EternalFS.Library.Diagnostics",
             "EternalFS.Library.Extensions",
             "EternalFS.Library.Filesystem",
             "EternalFS.Library.Utils",
@@ -101,30 +102,18 @@ public static partial class {commandManagerTypeName}
             {{
                 _ when result is not null => result,
 {string.Join("\n", commands.Select(SwitchCommand))}
-                _ => HandleDefault(ref context, CommandExecutionState.CommandNotFound, Encoding.UTF8.GetString(commandSpan))
+                _ => throw new CommandExecutionException(CommandExecutionState.CommandNotFound, Encoding.UTF8.GetString(commandSpan))
             }};
         }}
         catch (Exception e)
         {{
-#if DEBUG
-            result = HandleDefault(ref context, CommandExecutionState.ExecutionException, e.Message, e.StackTrace);
-#else
-            result = HandleDefault(ref context, CommandExecutionState.ExecutionException, e.Message);
-#endif
+            context.Writer.Append(e.Message);
+            result = CommandExecutionResult.Default;
         }}
 
         PostProcessCommand(ref context, buffer, ref result);
 
         return result;
-
-        CommandExecutionResult HandleDefault(ref CommandExecutionContext context, CommandExecutionState state, params object?[] messageArguments)
-        {{
-            return new()
-            {{
-                State = state,
-                MessageArguments = messageArguments
-            }};
-        }}
     }}
 }}";
 
@@ -177,43 +166,6 @@ public static partial class {commandManagerTypeName}
         => T.Info;
 }}";
         static string GetCommandInfo(INamedTypeSymbol command) => $@"GetInfo<{command.Name}>()";
-    }
-
-    private static string GenerateCommandManagerCommandStates(INamedTypeSymbol commandStatesSymbol, string commandManagerTypeName)
-    {
-        var states = commandStatesSymbol.GetMembers().OfType<IFieldSymbol>();
-
-        Dictionary<string, string> statesMessages = new();
-
-        foreach (var state in states)
-        {
-            if (state.GetAttribute<CommandStateMessageAttribute>() is not { } attribute)
-                continue;
-
-            string message = (string)attribute.ConstructorArguments[0].Value!;
-            message = message.Replace(@"""", @"""""");
-            message = message.Replace("\n", @""" + '\n' + """);
-            statesMessages.Add(state.Name, message);
-        }
-
-        IList<string> usings = new HashSet<string>()
-        {
-            typeof(Dictionary<,>).Namespace,
-            typeof(CommandExecutionState).Namespace,
-        }.OrderUsings();
-
-        return $@"
-{string.Join("\n", usings.Select(u => $"using {u};"))}
-
-#nullable enable
-
-public static partial class {commandManagerTypeName}
-{{
-    private static readonly Dictionary<CommandExecutionState, string> _executionStateMessages = new()
-    {{
-{string.Join("\n", statesMessages.Select(kvp => $@"        {{ CommandExecutionState.{kvp.Key}, @""{kvp.Value}"" }},"))}
-    }};
-}}";
     }
 
     private static string GetCommandName(INamedTypeSymbol command)

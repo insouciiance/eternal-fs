@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Text;
+using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
+using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -12,24 +14,16 @@ public partial class CatCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
+        ReadOnlySpan<byte> filename = context.ValueSpan.SplitIndex();
 
-        if (!ValidationHelper.IsFilenameValid(fileName))
-        {
-            return new()
-            {
-                State = CommandExecutionState.InvalidFilename,
-                MessageArguments = new object?[] { fileName.GetString() }
-            };
-        }
+        if (!ValidationHelper.IsFilenameValid(filename))
+            throw new EternalFileSystemException(EternalFileSystemState.InvalidFilename, filename.GetString());
 
-        EternalFileSystemManager manager = new(context.FileSystem);
-
-        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
-
-        if (!manager.TryOpenFile(fileName, directoryEntry, out var fileEntry))
-            return CommandExecutionResult.CantOpenFile(fileName);
+        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
+        var fileEntry = context.Accessor.LocateSubEntry(directoryEntry.FatEntryReference, filename);
+        
+        if (fileEntry.IsDirectory)
+            throw new EternalFileSystemException(EternalFileSystemState.CantOpenFile, filename.GetString());
 
         using EternalFileSystemFileStream stream = new(context.FileSystem, fileEntry.FatEntryReference);
 

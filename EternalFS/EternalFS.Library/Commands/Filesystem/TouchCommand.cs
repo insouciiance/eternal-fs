@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem;
+using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -12,14 +12,9 @@ public partial class TouchCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
+        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
 
-        EternalFileSystemManager manager = new(context.FileSystem);
-
-        if (!manager.TryOpenDirectory(context.CurrentDirectory, out var directoryEntry))
-            return CommandExecutionResult.CantOpenDirectory(context.CurrentDirectory);
-
-        manager.CreateFile(fileName, directoryEntry);
-
+        context.Accessor.CreateSubEntry(directoryEntry.FatEntryReference, fileName, false);
         context.Writer.Append($"Created a file {fileName.GetString()}");
 
         return CommandExecutionResult.Default;
