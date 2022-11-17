@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Utils;
 
+/// <summary>
+/// Provides widely used <see cref="ReadOnlySpan{T}"/>s.
+/// </summary>
 public static partial class ByteSpanHelper
 {
     [ByteSpan(" ")]

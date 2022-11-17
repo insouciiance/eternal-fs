@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents an exception occured during file system access.
+/// </summary>
 public class EternalFileSystemException : StringMapException<EternalFileSystemStateMap, EternalFileSystemState>
 {
     public EternalFileSystemException(EternalFileSystemState state, params object?[] args)

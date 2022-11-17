@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace EternalFS.Library.Filesystem.Indexing;
 
+/// <summary>
+/// Represents an indexer that caches and locates entries and directories in <see cref="EternalFileSystem"/>.
+/// </summary>
 public interface IEntryIndexer
 {
     void Initialize(EternalFileSystem fileSystem);

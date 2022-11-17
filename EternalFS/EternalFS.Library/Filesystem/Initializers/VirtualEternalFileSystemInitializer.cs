@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Filesystem.Initializers;
 
+/// <summary>
+/// A <see cref="IEternalFileSystemInitializer{T}"/> for <see cref="VirtualEternalFileSystem"/>.
+/// </summary>
 public class VirtualEternalFileSystemInitializer : IEternalFileSystemInitializer<VirtualEternalFileSystem>
 {
     public string Name { get; }

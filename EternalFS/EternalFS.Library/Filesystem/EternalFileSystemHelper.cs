@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Provides helper methods to operate on <see cref="EternalFileSystem"/>.
+/// </summary>
 public static class EternalFileSystemHelper
 {
     public static bool TryLocateSubEntry(

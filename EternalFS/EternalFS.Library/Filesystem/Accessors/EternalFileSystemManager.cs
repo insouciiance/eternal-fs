@@ -7,6 +7,10 @@ using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem.Accessors;
 
+/// <summary>
+/// Represents an <see cref="IEternalFileSystemAccessor"/>
+/// and provides various helper methods to simplify I/O operations.
+/// </summary>
 public class EternalFileSystemManager : IEternalFileSystemAccessor
 {
     private EternalFileSystem _fileSystem = null!;

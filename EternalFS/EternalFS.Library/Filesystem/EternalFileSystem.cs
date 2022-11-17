@@ -5,6 +5,9 @@ using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents an abstract file system.
+/// </summary>
 public abstract class EternalFileSystem
 {
     public string Name { get; private set; } = null!;

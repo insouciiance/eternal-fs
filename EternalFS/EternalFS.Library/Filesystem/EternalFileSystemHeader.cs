@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Holds various metadata for an <see cref="EternalFileSystem"/>.
+/// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct EternalFileSystemHeader
 {

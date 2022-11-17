@@ -4,6 +4,10 @@ using EternalFS.Library.Filesystem.Indexing;
 
 namespace EternalFS.Library.Filesystem.Accessors;
 
+/// <summary>
+/// Represents an <see cref="IEternalFileSystemAccessor"/> that also uses
+/// <see cref="IEntryIndexer"/> internally to index file system entries.
+/// </summary>
 public class EternalFileSystemIndexerAccessor : IEternalFileSystemAccessor
 {
     private readonly IEternalFileSystemAccessor _accessor;

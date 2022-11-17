@@ -5,6 +5,12 @@ using EternalFS.Library.Filesystem.Initializers;
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Mounts different <see cref="EternalFileSystem"/> instances using <see cref="Mount{T}"/>.
+/// </summary>
+/// <remarks>
+/// Also holds various constant values used on mounting.
+/// </remarks>
 public static class EternalFileSystemMounter
 {
     public const int CLUSTER_SIZE_BYTES = 512;

@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents an in-memory <see cref="EternalFileSystem"/>.
+/// </summary>
 public class VirtualEternalFileSystem : EternalFileSystem
 {
     private readonly byte[] _data;

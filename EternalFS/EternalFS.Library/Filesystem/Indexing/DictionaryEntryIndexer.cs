@@ -7,6 +7,9 @@ using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Filesystem.Indexing;
 
+/// <summary>
+/// A simple <see cref="IEntryIndexer"/> that uses <see cref="Dictionary{TKey, TValue}"/> internally to index values.
+/// </summary>
 public class DictionaryEntryIndexer : IEntryIndexer
 {
     private readonly Dictionary<string, EternalFileSystemEntry> _entriesCache = new();

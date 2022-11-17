@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace EternalFS.Library.Filesystem.Indexing;
 
-namespace EternalFS.Library.Filesystem.Indexing;
-
+/// <summary>
+/// The way an entry has been changed.
+/// </summary>
 public enum EntryChangeKind
 {
     Add,

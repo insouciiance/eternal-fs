@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Commands;
 
+/// <summary>
+/// Represents an enum of various errors that may appear on command execution.
+/// </summary>
 [StringMap]
 public enum CommandExecutionState
 {

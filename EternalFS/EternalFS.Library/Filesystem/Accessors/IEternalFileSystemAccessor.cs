@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace EternalFS.Library.Filesystem.Accessors;
 
+/// <summary>
+/// Handles access to <see cref="EternalFileSystem"/> in a generalized way.
+/// </summary>
 public interface IEternalFileSystemAccessor
 {
     void Initialize(EternalFileSystem fileSystem);

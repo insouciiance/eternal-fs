@@ -3,6 +3,9 @@ using System;
 
 namespace EternalFS.Library.Diagnostics;
 
+/// <summary>
+/// Represents an exception that uses <see cref="IStringMap{T}"/> internally to map error messages from enum values.
+/// </summary>
 public abstract class StringMapException<TMap, TEnum> : ApplicationException
     where TMap : IStringMap<TEnum>
     where TEnum : unmanaged, Enum

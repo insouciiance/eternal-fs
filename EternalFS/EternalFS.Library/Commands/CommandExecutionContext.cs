@@ -6,6 +6,12 @@ using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Commands;
 
+/// <summary>
+/// Represents a context that holds necessary information to execute commands.
+/// </summary>
+/// <remarks>
+/// Passed to <see cref="ICommand.Execute"/>.
+/// </remarks>
 public ref struct CommandExecutionContext
 {
     public EternalFileSystem FileSystem { get; internal set; } = null!;

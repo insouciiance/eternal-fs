@@ -5,6 +5,15 @@ using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents a <see cref="Stream"/> for an <see cref="EternalFileSystem"/>.
+/// Allows read and write operations under the given <see cref="EternalFileSystem"/>
+/// and switches underlying clusters seamlessly.
+/// </summary>
+/// <remarks>
+/// It may also create new clusters if the content being written is not enough to fit into
+/// already allocated clusters.
+/// </remarks>
 public class EternalFileSystemFileStream : Stream
 {
     private readonly EternalFileSystem _fileSystem;

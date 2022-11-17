@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents an enum of various errors that may appear on command execution.
+/// </summary>
 [StringMap]
 public enum EternalFileSystemState
 {

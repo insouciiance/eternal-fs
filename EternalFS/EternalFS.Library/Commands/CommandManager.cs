@@ -8,6 +8,18 @@ using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
 
 // ReSharper disable once CheckNamespace
+/// <summary>
+/// Handles command execution and acts as a centralized entry point to execute a command.
+/// </summary>
+/// <remarks>
+/// <para>
+/// A command is executed using <see cref="ExecuteCommand"/> from an input stream and <see cref="CommandExecutionContext"/>.
+/// </para>
+/// <para>
+/// A user may add partial <see cref="PreprocessCommand"/> and <see cref="PostProcessCommand"/> methods that leverage the behaviour of
+/// the execution before and after the command is executed respectively.
+/// </para>
+/// </remarks>
 public static partial class CommandManager
 {
     [ByteSpan("--help")]

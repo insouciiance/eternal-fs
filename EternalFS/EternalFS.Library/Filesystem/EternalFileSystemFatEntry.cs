@@ -2,6 +2,10 @@
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents a FAT-like entry for a file system entry,
+/// used to locate it in an allocation table.
+/// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct EternalFileSystemFatEntry
 {

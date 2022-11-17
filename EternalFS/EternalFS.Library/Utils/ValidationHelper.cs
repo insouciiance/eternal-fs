@@ -3,6 +3,9 @@ using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Utils;
 
+/// <summary>
+/// Provides helper methods for validation.
+/// </summary>
 public static class ValidationHelper
 {
     public static bool IsFilenameValid(in ReadOnlySpan<byte> filename)

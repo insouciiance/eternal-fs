@@ -1,5 +1,8 @@
 ﻿namespace EternalFS.Library.Commands;
 
+/// <summary>
+/// Represents various information about <see cref="ICommand"/>.
+/// </summary>
 public class CommandInfo
 {
     public string Name { get; init; }

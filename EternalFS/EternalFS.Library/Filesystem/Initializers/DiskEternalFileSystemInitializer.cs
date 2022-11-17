@@ -3,6 +3,9 @@ using System.IO;
 
 namespace EternalFS.Library.Filesystem.Initializers;
 
+/// <summary>
+/// A <see cref="IEternalFileSystemInitializer{T}"/> for <see cref="DiskEternalFileSystem"/>.
+/// </summary>
 public class DiskEternalFileSystemInitializer : IEternalFileSystemInitializer<DiskEternalFileSystem>
 {
     public string Name { get; }

@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace EternalFS.Library.Filesystem;
 
+/// <summary>
+/// Represents an entry for an <see cref="EternalFileSystem"/>.
+/// Holds various information about the entry, e.g., its size, whether it is a directory, etc.
+/// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct EternalFileSystemEntry
 {

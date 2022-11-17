@@ -2,6 +2,9 @@
 
 namespace EternalFS.Library.Utils;
 
+/// <summary>
+/// Represents a type that maps the enum's values to corresponding strings (provided by <see cref="MapAttribute"/>).
+/// </summary>
 public interface IStringMap<T>
     where T : unmanaged, Enum
 {
