@@ -16,7 +16,7 @@ public partial class CpCommand
         ReadOnlySpan<byte> to = context.ValueSpan.SplitIndex(1);
 
         var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
-        context.Accessor.CopyFile(directoryEntry.FatEntryReference, from, to);
+        context.Accessor.CopySubEntry(directoryEntry.FatEntryReference, from, to);
         
         context.Writer.Append($"Copied {from.GetString()} to {to.GetString()}");
 

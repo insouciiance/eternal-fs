@@ -11,8 +11,8 @@ public ref struct CommandExecutionContext
     public EternalFileSystem FileSystem { get; internal set; } = null!;
 
     public ReadOnlySpan<byte> ValueSpan { get; internal set; } = ReadOnlySpan<byte>.Empty;
-    
-    public required IEternalFileSystemAccessor Accessor { get; init; }
+
+    public IEternalFileSystemAccessor Accessor { get; internal set; } = null!;
 
     public StringBuilder Writer { get; init; } = new();
 

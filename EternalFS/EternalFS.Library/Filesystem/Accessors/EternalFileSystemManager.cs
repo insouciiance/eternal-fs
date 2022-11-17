@@ -176,8 +176,9 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         }
     }
 
-    public void CopyFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
+    public void CopySubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
     {
+        // TODO: support directories
         var fromEntry = LocateFile(directoryEntry, from);
 
         EternalFileSystemEntry toEntry = CreateSubEntry(directoryEntry, to, true);

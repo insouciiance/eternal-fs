@@ -6,19 +6,19 @@ namespace EternalFS.Library.Filesystem.Accessors;
 
 public class EternalFileSystemIndexerAccessor : IEternalFileSystemAccessor
 {
-    private readonly EternalFileSystemManager _manager;
+    private readonly IEternalFileSystemAccessor _accessor;
 
     private readonly IEntryIndexer _indexer;
 
-    public EternalFileSystemIndexerAccessor(EternalFileSystemManager manager, IEntryIndexer indexer)
+    public EternalFileSystemIndexerAccessor(IEternalFileSystemAccessor accessor, IEntryIndexer indexer)
     {
-        _manager = manager;
+        _accessor = accessor;
         _indexer = indexer;
     }
 
     public void Initialize(EternalFileSystem fileSystem)
     {
-        _manager.Initialize(fileSystem);
+        _accessor.Initialize(fileSystem);
         _indexer.Initialize(fileSystem);
     }
 
@@ -27,7 +27,7 @@ public class EternalFileSystemIndexerAccessor : IEternalFileSystemAccessor
         if (_indexer.TryLocateDirectory(directoryStack, out var entry))
             return entry;
 
-        return _manager.LocateDirectory(directoryStack);
+        return _accessor.LocateDirectory(directoryStack);
     }
 
     public EternalFileSystemEntry LocateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName)
@@ -35,31 +35,31 @@ public class EternalFileSystemIndexerAccessor : IEternalFileSystemAccessor
         if (_indexer.TryLocateEntry(directoryEntry, subEntryName, out var subEntry))
             return subEntry;
 
-        return _manager.LocateSubEntry(directoryEntry, subEntryName);
+        return _accessor.LocateSubEntry(directoryEntry, subEntryName);
     }
 
     public EternalFileSystemEntry CreateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName, bool isDirectory)
     {
-        var entry = _manager.CreateSubEntry(directoryEntry, subEntryName, isDirectory);
+        var entry = _accessor.CreateSubEntry(directoryEntry, subEntryName, isDirectory);
         _indexer.RecordChange(directoryEntry, subEntryName, EntryChangeKind.Add);
         return entry;
     }
 
     public void DeleteSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName)
     {
-        _manager.DeleteSubEntry(directoryEntry, fileName);
+        _accessor.DeleteSubEntry(directoryEntry, fileName);
         _indexer.RecordChange(directoryEntry, fileName, EntryChangeKind.Remove);
     }
 
     public void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, in ReadOnlySpan<byte> content)
     {
-        _manager.WriteFile(directoryEntry, fileName, content);
+        _accessor.WriteFile(directoryEntry, fileName, content);
         _indexer.RecordChange(directoryEntry, fileName, EntryChangeKind.Modify);
     }
 
-    public void CopyFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
+    public void CopySubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
     {
-        _manager.CopyFile(directoryEntry, from, to);
+        _accessor.CopySubEntry(directoryEntry, from, to);
         _indexer.RecordChange(directoryEntry, to, EntryChangeKind.Add);
     }
 }
