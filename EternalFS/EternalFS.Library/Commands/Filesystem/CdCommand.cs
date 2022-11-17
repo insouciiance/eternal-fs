@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -14,22 +13,16 @@ public partial class CdCommand
     {
         ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
 
-        List<string> stack = context.CurrentDirectory;
+        // just make sure the directory exists.
+	    var subDirectory = context.Accessor.LocateSubEntry(context.CurrentDirectory.FatEntryReference, directoryName);
 
-        if (directoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()))
-            stack.RemoveAt(context.CurrentDirectory.Count - 1);
+	    if (!subDirectory.IsDirectory)
+		    throw new CommandExecutionException($"{directoryName.GetString()} is a file.");
+
+		if (directoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()))
+			context.CurrentDirectory.Pop();
         else
-            stack.Add(directoryName.GetString());
-
-        try
-        {
-            context.Accessor.LocateDirectory(stack);
-        }
-        catch(EternalFileSystemException)
-        {
-            stack.RemoveAt(stack.Count - 1);
-            throw;
-        }
+            context.CurrentDirectory.Push(directoryName);
 
         return CommandExecutionResult.Default;
     }

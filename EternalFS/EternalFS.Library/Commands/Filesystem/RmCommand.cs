@@ -1,7 +1,5 @@
 ﻿using System;
-using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -12,8 +10,7 @@ public partial class RmCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
-        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
-        context.Accessor.DeleteSubEntry(directoryEntry.FatEntryReference, fileName);
+        context.Accessor.DeleteSubEntry(context.CurrentDirectory.FatEntryReference, fileName);
 
         return CommandExecutionResult.Default;
     }

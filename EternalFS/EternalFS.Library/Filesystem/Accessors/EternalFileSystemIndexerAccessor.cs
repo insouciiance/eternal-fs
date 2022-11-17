@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using EternalFS.Library.Filesystem.Indexing;
 
 namespace EternalFS.Library.Filesystem.Accessors;
@@ -24,14 +23,6 @@ public class EternalFileSystemIndexerAccessor : IEternalFileSystemAccessor
     {
         _accessor.Initialize(fileSystem);
         _indexer.Initialize(fileSystem);
-    }
-
-    public EternalFileSystemEntry LocateDirectory(ICollection<string> directoryStack)
-    {
-        if (_indexer.TryLocateDirectory(directoryStack, out var entry))
-            return entry;
-
-        return _accessor.LocateDirectory(directoryStack);
     }
 
     public EternalFileSystemEntry LocateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName)

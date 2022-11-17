@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Text;
-using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -15,8 +12,7 @@ public partial class CpCommand
         ReadOnlySpan<byte> from = context.ValueSpan.SplitIndex();
         ReadOnlySpan<byte> to = context.ValueSpan.SplitIndex(1);
 
-        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
-        context.Accessor.CopySubEntry(directoryEntry.FatEntryReference, from, to);
+        context.Accessor.CopySubEntry(context.CurrentDirectory.FatEntryReference, from, to);
         
         context.Writer.Append($"Copied {from.GetString()} to {to.GetString()}");
 

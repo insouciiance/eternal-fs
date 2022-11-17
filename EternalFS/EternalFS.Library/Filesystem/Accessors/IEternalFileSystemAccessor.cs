@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace EternalFS.Library.Filesystem.Accessors;
 
@@ -9,8 +8,6 @@ namespace EternalFS.Library.Filesystem.Accessors;
 public interface IEternalFileSystemAccessor
 {
     void Initialize(EternalFileSystem fileSystem);
-
-    EternalFileSystemEntry LocateDirectory(ICollection<string> directoryStack);
 
     EternalFileSystemEntry LocateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName);
 

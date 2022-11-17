@@ -16,9 +16,7 @@ public partial class MkdirCommand
         if (!ValidationHelper.IsDirectoryValid(directoryName))
             throw new EternalFileSystemException(EternalFileSystemState.InvalidDirectoryName, directoryName.GetString());
 
-        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
-
-        context.Accessor.CreateSubEntry(directoryEntry.FatEntryReference, directoryName, true);
+        context.Accessor.CreateSubEntry(context.CurrentDirectory.FatEntryReference, directoryName, true);
 
         context.Writer.Append($"Created a directory {directoryName.GetString()}");
 

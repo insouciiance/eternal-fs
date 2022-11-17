@@ -14,10 +14,10 @@ public partial class OpenfsCommand
         string fileName = fileSpan.GetString();
 
         context.CurrentDirectory.Clear();
-        context.CurrentDirectory.Add(EternalFileSystemMounter.ROOT_DIRECTORY_NAME);
 
         DiskEternalFileSystem fs = new(fileName);
         context.FileSystem = fs;
+        context.Accessor.Initialize(fs);
 
         return CommandExecutionResult.Default;
     }

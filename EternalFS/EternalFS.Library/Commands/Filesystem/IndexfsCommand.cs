@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Filesystem.Indexing;
@@ -20,6 +19,7 @@ public partial class IndexfsCommand
 
         context.Accessor = new EternalFileSystemIndexerAccessor(context.Accessor, indexer);
         context.Accessor.Initialize(context.FileSystem);
+        context.CurrentDirectory.SetAccessor(context.Accessor);
 
         if (context.ValueSpan.Contains(ShowIndex()))
             WriteInternalIndex(ref context, indexer);
@@ -36,15 +36,6 @@ public partial class IndexfsCommand
         context.Writer.AppendLine("Entry index:");
 
         foreach (var (key, value) in index)
-            context.Writer.AppendLine($$"""{ {{key}}, {{value}} }""");
-
-        context.Writer.AppendLine();
-
-        var dirIndex = indexer.GetInternalDirectoryIndex();
-
-        context.Writer.AppendLine("Directory index:");
-
-        foreach (var (key, value) in dirIndex)
             context.Writer.AppendLine($$"""{ {{key}}, {{value}} }""");
     }
 }

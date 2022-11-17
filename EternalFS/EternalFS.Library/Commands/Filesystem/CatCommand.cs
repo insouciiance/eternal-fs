@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Text;
-using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
-using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -19,8 +17,7 @@ public partial class CatCommand
         if (!ValidationHelper.IsFilenameValid(filename))
             throw new EternalFileSystemException(EternalFileSystemState.InvalidFilename, filename.GetString());
 
-        var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
-        var fileEntry = context.Accessor.LocateSubEntry(directoryEntry.FatEntryReference, filename);
+        var fileEntry = context.Accessor.LocateSubEntry(context.CurrentDirectory.FatEntryReference, filename);
         
         if (fileEntry.IsDirectory)
             throw new EternalFileSystemException(EternalFileSystemState.CantOpenFile, filename.GetString());

@@ -21,11 +21,13 @@ public class TerminalRunner
             Accessor = new EternalFileSystemManager()
         };
 
+        context.CurrentDirectory.SetAccessor(context.Accessor);
+
         OnStart?.Invoke(ref context);
 
         do
         {
-            string directoryString = string.Join("/", context.CurrentDirectory);
+            string directoryString = string.Join("/", context.CurrentDirectory.Path);
             Console.Write(WRITER_PATH_OUTPUT_FORMAT, directoryString);
 
             string commandLine = Console.ReadLine()!;

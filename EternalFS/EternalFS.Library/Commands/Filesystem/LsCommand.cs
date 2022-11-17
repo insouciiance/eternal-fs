@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
-using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -17,9 +16,7 @@ public partial class LsCommand
 
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        var currentDirectory = context.Accessor.LocateDirectory(context.CurrentDirectory);
-
-        using EternalFileSystemFileStream stream = new(context.FileSystem, currentDirectory.FatEntryReference);
+        using EternalFileSystemFileStream stream = new(context.FileSystem, context.CurrentDirectory.FatEntryReference);
 
         int entriesCount = stream.MarshalReadStructure<int>();
 

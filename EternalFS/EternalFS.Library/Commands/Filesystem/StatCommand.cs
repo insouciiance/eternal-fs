@@ -1,7 +1,6 @@
 ﻿using System;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
-using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -13,11 +12,9 @@ public partial class StatCommand
     {
         ReadOnlySpan<byte> subEntryName = context.ValueSpan.SplitIndex();
 
-        var directory = context.Accessor.LocateDirectory(context.CurrentDirectory);
-
         string entryString = subEntryName.GetString();
         
-        if (EternalFileSystemHelper.TryLocateSubEntry(context.FileSystem, directory.FatEntryReference, subEntryName, out var subEntry))
+        if (EternalFileSystemHelper.TryLocateSubEntry(context.FileSystem, context.CurrentDirectory.FatEntryReference, subEntryName, out var subEntry))
             PrintEntryInfo(ref context, subEntry, entryString);
         else
             context.Writer.Append($"{entryString} not found.");

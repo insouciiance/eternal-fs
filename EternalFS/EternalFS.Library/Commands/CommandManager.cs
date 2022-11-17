@@ -64,10 +64,8 @@ public static partial class CommandManager
             if (context.FileSystem is null)
                 throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
-            var directoryEntry = context.Accessor.LocateDirectory(context.CurrentDirectory);
-
-            context.Accessor.CreateSubEntry(directoryEntry.FatEntryReference, filename, false);
-            context.Accessor.WriteFile(directoryEntry.FatEntryReference, filename, Encoding.UTF8.GetBytes(context.Writer.ToString()));
+            context.Accessor.CreateSubEntry(context.CurrentDirectory.FatEntryReference, filename, false);
+            context.Accessor.WriteFile(context.CurrentDirectory.FatEntryReference, filename, Encoding.UTF8.GetBytes(context.Writer.ToString()));
             
             context.Writer.Clear();
         }

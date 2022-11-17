@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
 
@@ -14,19 +13,12 @@ public class DictionaryEntryIndexer : IEntryIndexer
 {
     private readonly Dictionary<string, EternalFileSystemEntry> _entriesCache = new();
 
-    private readonly Dictionary<string, EternalFileSystemEntry> _directoriesCache = new();
-
     private EternalFileSystem _fileSystem = null!;
 
     public void Initialize(EternalFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
         IndexFileSystem();
-    }
-
-    public bool TryLocateDirectory(ICollection<string> directoryStack, out EternalFileSystemEntry entry)
-    {
-        return _directoriesCache.TryGetValue(GetDirectoryName(directoryStack), out entry);
     }
 
     public bool TryLocateEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName, out EternalFileSystemEntry entry)
@@ -63,11 +55,6 @@ public class DictionaryEntryIndexer : IEntryIndexer
         return _entriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
     }
 
-    internal Dictionary<string, string> GetInternalDirectoryIndex()
-    {
-        return _directoriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
-    }
-
     private void IndexFileSystem()
     {
         List<string> directoryStack = new()
@@ -92,7 +79,6 @@ public class DictionaryEntryIndexer : IEntryIndexer
                 {
                     ReadOnlySpan<byte> subDirectoryName = entry.SubEntryName;
                     directoryStack.Add(subDirectoryName.GetString());
-                    _directoriesCache.Add(GetDirectoryName(directoryStack), entry);
                     
                     IndexDirectory(entry.FatEntryReference);
                 }
@@ -104,7 +90,4 @@ public class DictionaryEntryIndexer : IEntryIndexer
 
     private static string GetEntryName(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName)
         => $"{(ushort)directoryEntry}_{entryName.GetString()}";
-
-    private static string GetDirectoryName(ICollection<string> directoryStack)
-        => string.Join("/", directoryStack);
 }

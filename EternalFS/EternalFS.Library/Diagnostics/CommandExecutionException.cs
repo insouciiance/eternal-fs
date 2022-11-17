@@ -3,15 +3,23 @@
 namespace EternalFS.Library.Diagnostics;
 
 /// <summary>
-/// Represents an exception occured during command execution.
+/// Represents an exception occurred during command execution.
 /// </summary>
 public class CommandExecutionException : StringMapException<CommandExecutionStateMap, CommandExecutionState>
 {
+    private readonly string? _message;
+
     public CommandExecutionException(CommandExecutionState state, params object?[] args)
         : base(state, args) { }
 
+    public CommandExecutionException(string message)
+	    : base(CommandExecutionState.Other)
+    {
+	    _message = message;
+    }
+
     protected override string GetUnmappedMessage(CommandExecutionState state)
     {
-        return $"Command failed with code {(int)state}.";
+        return _message ?? $"Command failed with code {(int)state}.";
     }
 }
