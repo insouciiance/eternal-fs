@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem.Indexing;
 
@@ -18,6 +19,7 @@ public class DictionaryEntryIndexer : IEntryIndexer
     public void Initialize(EternalFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
+        _entriesCache.Clear();
         IndexFileSystem();
     }
 
@@ -75,13 +77,20 @@ public class DictionaryEntryIndexer : IEntryIndexer
                 var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
                 _entriesCache.Add(GetEntryName(directoryEntry, entry.SubEntryName), entry);
 
-                if (entry.IsDirectory)
-                {
-                    ReadOnlySpan<byte> subDirectoryName = entry.SubEntryName;
-                    directoryStack.Add(subDirectoryName.GetString());
+                if (!entry.IsDirectory)
+	                continue;
+
+                ReadOnlySpan<byte> subDirectoryName = entry.SubEntryName;
+                subDirectoryName = subDirectoryName.TrimEnd(ByteSpanHelper.Null());
                     
-                    IndexDirectory(entry.FatEntryReference);
-                }
+                // skip parent directory and this directory, they have already been indexed.
+                if (subDirectoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()) ||
+                    subDirectoryName.SequenceEqual(ByteSpanHelper.Period()))
+	                continue;
+                    
+                directoryStack.Add(subDirectoryName.GetString());
+                    
+                IndexDirectory(entry.FatEntryReference);
             }
 
             directoryStack.RemoveAt(directoryStack.Count - 1);

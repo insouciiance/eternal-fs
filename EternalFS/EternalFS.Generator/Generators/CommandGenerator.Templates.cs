@@ -94,24 +94,25 @@ public static partial class {commandManagerTypeName}
 
         CommandExecutionResult? result = null;
 
-        PreprocessCommand(ref context, buffer, ref result);
-
         try
         {{
+	        PreprocessCommand(ref context, buffer, ref result);
+
             result = commandSpan switch
             {{
                 _ when result is not null => result,
 {string.Join("\n", commands.Select(SwitchCommand))}
                 _ => throw new CommandExecutionException(CommandExecutionState.CommandNotFound, Encoding.UTF8.GetString(commandSpan))
             }};
+	
+			PostProcessCommand(ref context, buffer, ref result);
         }}
         catch (Exception e)
         {{
+			context.Writer.Clear();
             context.Writer.Append(e.Message);
             result = CommandExecutionResult.Default;
         }}
-
-        PostProcessCommand(ref context, buffer, ref result);
 
         return result;
     }}

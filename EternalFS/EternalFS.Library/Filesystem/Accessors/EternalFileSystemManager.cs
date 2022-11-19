@@ -92,7 +92,7 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
     {
         using Stream fsStream = _fileSystem.GetStream();
 
-        if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newEntry))
+        if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newFatEntry))
             throw new OutOfMemoryException();
 
         using EternalFileSystemFileStream stream = new(_fileSystem, directoryEntry);
@@ -100,21 +100,31 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         int entriesCount = OverwriteEntriesCount(stream);
 
         for (int i = 0; i < entriesCount; i++)
-            stream.MarshalReadStructure<EternalFileSystemEntry>();
+        {
+	        var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
+	        ReadOnlySpan<byte> entryName = entry.SubEntryName;
 
-        EternalFileSystemEntry entry = new(entrySpan, newEntry, isDirectory);
-        stream.MarshalWriteStructure(entry);
+	        if (entrySpan.SequenceEqual(entryName.TrimEnd(ByteSpanHelper.Null())))
+	        {
+                // fall back, we can't create this entry.
+		        OverwriteEntriesCount(stream, false);
+		        throw new EternalFileSystemException(EternalFileSystemState.SubEntryExists, entrySpan.GetString());
+	        }
+        }
+
+        EternalFileSystemEntry newEntry = new(entrySpan, newFatEntry, isDirectory);
+        stream.MarshalWriteStructure(newEntry);
 
         if (isDirectory)
         {
-            using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newEntry);
+            using EternalFileSystemFileStream newDirectoryStream = new(_fileSystem, newFatEntry);
 
             newDirectoryStream.MarshalWriteStructure(2);
-            newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newEntry, true));
+            newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.Period(), newFatEntry, true));
             newDirectoryStream.MarshalWriteStructure<EternalFileSystemEntry>(new(ByteSpanHelper.ParentDirectory(), directoryEntry, true));
         }
 
-        return entry;
+        return newEntry;
     }
 
     public void DeleteSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entrySpan)
@@ -228,12 +238,17 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         }
     }
 
+    private static int ReadEntriesCount(EternalFileSystemFileStream stream)
+    {
+	    stream.Seek(0);
+	    return stream.MarshalReadStructure<int>();
+    }
+
     private static int OverwriteEntriesCount(EternalFileSystemFileStream stream, bool increment = true, int delta = 1)
     {
         int amount = increment ? delta : -delta;
 
-        stream.Seek(0);
-        int entriesCount = stream.MarshalReadStructure<int>();
+        int entriesCount = ReadEntriesCount(stream);
 
         stream.Seek(0);
         stream.MarshalWriteStructure(entriesCount + amount);

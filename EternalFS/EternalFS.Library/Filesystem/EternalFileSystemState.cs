@@ -31,6 +31,9 @@ public enum EternalFileSystemState
     [Map(@"Unable to delete ""{0}"".")]
     CantDeleteFile,
 
+    [Map(@"A subentry with the name ""{0}"" already exists.")]
+    SubEntryExists,
+
 #if DEBUG
     [Map("{0}\n{1}")]
 #else

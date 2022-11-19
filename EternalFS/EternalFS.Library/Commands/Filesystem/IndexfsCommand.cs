@@ -21,19 +21,19 @@ public partial class IndexfsCommand
         context.Accessor.Initialize(context.FileSystem);
         context.CurrentDirectory.SetAccessor(context.Accessor);
 
+        context.Writer.Append("Created an index over the execution context");
+
         if (context.ValueSpan.Contains(ShowIndex()))
             WriteInternalIndex(ref context, indexer);
 
         return CommandExecutionResult.Default;
     }
 
-    private void WriteInternalIndex(ref CommandExecutionContext context, DictionaryEntryIndexer indexer)
+    private static void WriteInternalIndex(ref CommandExecutionContext context, DictionaryEntryIndexer indexer)
     {
-        context.Writer.AppendLine("Internal index map:");
+        context.Writer.AppendLine("\nInternal index map:");
 
         var index = indexer.GetInternalIndex();
-
-        context.Writer.AppendLine("Entry index:");
 
         foreach (var (key, value) in index)
             context.Writer.AppendLine($$"""{ {{key}}, {{value}} }""");
