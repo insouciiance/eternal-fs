@@ -5,7 +5,7 @@ using EternalFS.Library.Extensions;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("touch", true)]
-[CommandDoc("Creates an empty file with the given name.")]
+[CommandSummary("Creates an empty file with the given name.")]
 public partial class TouchCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

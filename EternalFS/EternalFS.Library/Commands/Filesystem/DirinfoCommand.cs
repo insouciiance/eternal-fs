@@ -4,7 +4,7 @@ using EternalFS.Library.Filesystem;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("dirinfo", true)]
-[CommandDoc("Outputs information about the current directory.")]
+[CommandSummary("Outputs information about the current directory.")]
 public partial class DirinfoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

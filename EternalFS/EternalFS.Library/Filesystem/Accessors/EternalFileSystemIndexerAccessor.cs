@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using EternalFS.Library.Filesystem.Indexing;
 
 namespace EternalFS.Library.Filesystem.Accessors;
@@ -48,9 +49,9 @@ public class EternalFileSystemIndexerAccessor : IEternalFileSystemAccessor
         Indexer.RecordChange(directoryEntry, fileName, EntryChangeKind.Remove);
     }
 
-    public void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, in ReadOnlySpan<byte> content)
+    public void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, Stream source)
     {
-        Accessor.WriteFile(directoryEntry, fileName, content);
+        Accessor.WriteFile(directoryEntry, fileName, source);
         Indexer.RecordChange(directoryEntry, fileName, EntryChangeKind.Modify);
     }
 

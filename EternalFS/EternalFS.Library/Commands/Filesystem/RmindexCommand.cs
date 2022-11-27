@@ -3,7 +3,7 @@
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("rmindex", true)]
-[CommandDoc("Removes the index from the current execution context. If there is no index, does nothing.")]
+[CommandSummary("Removes the index from the current execution context. If there is no index, does nothing.")]
 public partial class RmindexCommand
 {
 	public CommandExecutionResult Execute(ref CommandExecutionContext context)

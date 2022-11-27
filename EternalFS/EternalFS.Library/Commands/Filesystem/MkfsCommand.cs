@@ -8,16 +8,25 @@ using EternalFS.Library.Utils;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("mkfs")]
-[CommandDoc("Creates a file system given its name and size.")]
+[CommandSummary("Creates a file system given its name and size.")]
+[CommandArgument(NAME_ARG, "The name of the file system to create.", true)]
+[CommandArgument(SIZE_ARG, "The size of the file system to create (in bytes).", true)]
+[CommandArgument(FILENAME_ARG, "The filename of the file system to create. If omitted, the filesystem fill be an in-memory filesystem.")]
 public partial class MkfsCommand
 {
-    [ByteSpan("-n")]
+    private const string NAME_ARG = "-n";
+
+    private const string SIZE_ARG = "-s";
+
+    private const string FILENAME_ARG = "-f";
+
+    [ByteSpan(NAME_ARG)]
     private static partial ReadOnlySpan<byte> Name();
 
-    [ByteSpan("-s")]
+    [ByteSpan(SIZE_ARG)]
     private static partial ReadOnlySpan<byte> Size();
 
-    [ByteSpan("-f")]
+    [ByteSpan(FILENAME_ARG)]
     private static partial ReadOnlySpan<byte> FileName();
 
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

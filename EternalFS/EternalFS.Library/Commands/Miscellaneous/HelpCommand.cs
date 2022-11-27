@@ -1,7 +1,7 @@
 ﻿namespace EternalFS.Library.Commands.Miscellaneous;
 
 [Command("help")]
-[CommandDoc("Outputs a list of available commands with their documentation.")]
+[CommandSummary("Outputs a list of available commands with their documentation.")]
 public partial class HelpCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

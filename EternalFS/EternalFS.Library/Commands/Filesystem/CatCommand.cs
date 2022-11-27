@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
@@ -7,7 +8,7 @@ using EternalFS.Library.Utils;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("cat", true)]
-[CommandDoc("Outputs the contents of a given file.")]
+[CommandSummary("Outputs the contents of a given file.")]
 public partial class CatCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

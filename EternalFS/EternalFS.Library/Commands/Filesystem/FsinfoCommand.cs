@@ -3,7 +3,7 @@
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("fsinfo", true)]
-[CommandDoc("Outputs the information about the filesystem being used.")]
+[CommandSummary("Outputs the information about the filesystem being used.")]
 public partial class FsinfoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

@@ -8,10 +8,13 @@ using EternalFS.Library.Utils;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("ls", true)]
-[CommandDoc("Lists all entries in current working directory.")]
+[CommandSummary("Lists all entries in current working directory.")]
+[CommandArgument(LONGLIST_ARG, "Display file size as well as file name.")]
 public partial class LsCommand
 {
-    [ByteSpan("-l")]
+    private const string LONGLIST_ARG = "-l";
+
+    [ByteSpan(LONGLIST_ARG)]
     private static partial ReadOnlySpan<byte> LongList();
 
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

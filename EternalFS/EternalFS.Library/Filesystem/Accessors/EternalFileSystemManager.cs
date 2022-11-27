@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Utils;
 
@@ -204,16 +205,16 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         OverwriteFileEntry(toEntry.FatEntryReference, directoryEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
     }
 
-    public void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, in ReadOnlySpan<byte> content)
+    public void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, Stream source)
     {
         var fileEntry = LocateFile(directoryEntry, fileName);
 
         using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry.FatEntryReference))
         {
-            fileStream.Write(content);
+            source.CopyTo(fileStream);
         }
 
-        int length = content.Length;
+        int length = (int)source.Length;
         OverwriteFileEntry(fileEntry.FatEntryReference, directoryEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
     }
 

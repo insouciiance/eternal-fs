@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
+using System.IO;
 using System.Text;
 using EternalFS.Library.Commands;
 using EternalFS.Library.Commands.Miscellaneous;
@@ -41,14 +41,14 @@ public static partial class CommandManager
 			info.NeedsFileSystem)
 			throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
-		HandleHelpArgument(ref context, commandSpan, ref result);
+		HandleHelpArgument(ref context, input, ref result);
 
-		static void HandleHelpArgument(ref CommandExecutionContext context, in ReadOnlySpan<byte> commandSpan, ref CommandExecutionResult? result)
+		static void HandleHelpArgument(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
 		{
 			if (!context.ValueSpan.Contains(Help()))
 				return;
 
-			context.ValueSpan = commandSpan;
+			context.ValueSpan = input.SplitIndex(Help());
 			result = ManCommand.Instance.Execute(ref context);
 		}
 	}
@@ -79,7 +79,10 @@ public static partial class CommandManager
 				context.Accessor.CreateSubEntry(context.CurrentDirectory.FatEntryReference, filename, false);
 			}
 
-			context.Accessor.WriteFile(context.CurrentDirectory.FatEntryReference, filename, Encoding.UTF8.GetBytes(context.Writer.ToString()));
+            byte[] bytes = Encoding.UTF8.GetBytes(context.Writer.ToString());
+            MemoryStream ms = new(bytes);
+
+            context.Accessor.WriteFile(context.CurrentDirectory.FatEntryReference, filename, ms);
 
 			context.Writer.Clear();
 		}

@@ -13,4 +13,8 @@
     <ProjectReference Include="..\EternalFS.Generator\EternalFS.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Filesystem\Validation\" />
+  </ItemGroup>
+
 </Project>

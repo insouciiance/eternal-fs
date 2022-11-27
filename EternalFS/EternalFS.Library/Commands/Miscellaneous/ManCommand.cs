@@ -5,7 +5,7 @@ using EternalFS.Library.Extensions;
 namespace EternalFS.Library.Commands.Miscellaneous;
 
 [Command("man")]
-[CommandDoc("Searches the documentation for the given command.")]
+[CommandSummary("Searches the documentation for the given command.")]
 public partial class ManCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
@@ -23,10 +23,18 @@ public partial class ManCommand
         if (CommandManager.CommandInfos.TryGetValue(command, out var info) && info.Documentation is { } doc)
         {
             context.Writer.Append($"Summary: {doc.Summary}");
+
+            if (doc.Arguments is { Length: > 0 } args)
+            {
+                context.Writer.Append("\nArguments:");
+
+                foreach (var arg in args)
+                    context.Writer.Append($"\n{arg.Name}   {arg.Description} {(arg.Required ? "[Required]" : string.Empty)}");
+            }
+
             return CommandExecutionResult.Default;
         }
 
-        context.Writer.AppendLine($@"Can't find documentation for ""{command}"".");
-        throw new CommandExecutionException(CommandExecutionState.Other);
+        throw new CommandExecutionException($@"Can't find documentation for ""{command}"".");
     }
 }

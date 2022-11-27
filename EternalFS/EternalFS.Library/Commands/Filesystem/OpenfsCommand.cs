@@ -5,7 +5,7 @@ using EternalFS.Library.Filesystem;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("openfs")]
-[CommandDoc("Opens an existing file system given its file name.")]
+[CommandSummary("Opens an existing file system given its file name.")]
 public partial class OpenfsCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

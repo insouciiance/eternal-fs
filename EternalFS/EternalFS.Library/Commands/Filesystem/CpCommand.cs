@@ -4,7 +4,7 @@ using EternalFS.Library.Extensions;
 namespace EternalFS.Library.Commands.Filesystem;
 
 [Command("cp", true)]
-[CommandDoc("Copies a file into another.")]
+[CommandSummary("Copies a file into another.")]
 public partial class CpCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

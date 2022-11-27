@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;
@@ -52,9 +54,20 @@ public class DictionaryEntryIndexer : IEntryIndexer
         _entriesCache[entryName] = subEntry;
     }
 
-    internal Dictionary<string, string> GetInternalIndex()
+    [Conditional("DEBUG")]
+    internal void WriteInternalIndex(ref CommandExecutionContext context)
     {
-        return _entriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
+        context.Writer.AppendLine("\nInternal index map:");
+
+        var index = GetInternalIndex();
+
+        foreach (var (key, value) in index)
+            context.Writer.AppendLine($$"""{ {{key}}, {{value}} }""");
+
+        Dictionary<string, string> GetInternalIndex()
+        {
+            return _entriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
+        }
     }
 
     private void IndexFileSystem()

@@ -20,8 +20,8 @@ public partial class CommandGenerator
         var commandName = (string)commandAttribute.ConstructorArguments[0].Value!;
         bool needsFileSystem = (bool)commandAttribute.ConstructorArguments[1].Value!;
 
-        var commandDocAttribute = command.GetAttribute<CommandDocAttribute>();
-        string? commandSummary = (string?)commandDocAttribute?.ConstructorArguments[0].Value;
+        var summaryAttribute = command.GetAttribute<CommandSummaryAttribute>();
+        string? commandSummary = (string?)summaryAttribute?.ConstructorArguments[0].Value;
         
         string commandDeclarationName = command.ToDisplayString(CommonFormats.Declaration);
 
@@ -38,9 +38,34 @@ partial {GetTypeKindString(command)} {commandDeclarationName} : Singleton<{comma
 {{
     static CommandInfo ICommand.Info {{ get; }} = new(""{commandName}"", {needsFileSystem.ToString().ToLower()})
     {{
-        Documentation = {(commandSummary is { } ? @$"new(""{commandSummary}"")" : "null")}
+        Documentation = {GetDocumentation()}
     }};
 }}";
+
+        string GetDocumentation()
+        {
+            if (commandSummary is null)
+                return "null";
+
+            var argumentsAttributes = command.GetAttributes<CommandArgumentAttribute>();
+            
+            return
+$$""" 
+CommandDocumentation.CreateBuilder()
+            .SetSummary("{{commandSummary}}")
+            {{string.Join("\n", argumentsAttributes.Select(AddArgument))}}
+            .ToDocumentation()
+""";
+
+            string AddArgument(AttributeData data)
+            {
+                var name = (string)data.ConstructorArguments[0].Value!;
+                var description = (string)data.ConstructorArguments[1].Value!;
+                var required = (bool)data.ConstructorArguments[2].Value!;
+
+                return $@".AddArgument(new CommandDocumentation.Argument(""{name}"", ""{description}"", {(required ? "true" : "false")}))";
+            }
+        }
     }
 
     private static string GenerateCommandManagerType(ImmutableArray<INamedTypeSymbol> commands, string commandManagerTypeName)

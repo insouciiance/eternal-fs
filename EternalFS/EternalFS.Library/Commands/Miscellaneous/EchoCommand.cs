@@ -3,7 +3,7 @@
 namespace EternalFS.Library.Commands.Miscellaneous;
 
 [Command("echo")]
-[CommandDoc("Outputs the argument passed to this command to the output stream.")]
+[CommandSummary("Outputs the argument passed to this command to the output stream.")]
 public partial class EchoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)

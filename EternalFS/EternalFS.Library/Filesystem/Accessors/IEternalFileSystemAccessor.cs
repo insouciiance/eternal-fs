@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace EternalFS.Library.Filesystem.Accessors;
 
@@ -17,5 +18,5 @@ public interface IEternalFileSystemAccessor
 
     void CopySubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to);
 
-    void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, in ReadOnlySpan<byte> content);
+    void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, Stream source);
 }

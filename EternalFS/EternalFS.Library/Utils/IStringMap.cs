@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EternalFS.Library.Utils;
 
@@ -10,5 +11,5 @@ public interface IStringMap<T>
 {
     static abstract string GetString(T key);
 
-    static abstract bool TryGetString(T key, out string value);
+    static abstract bool TryGetString(T key, [MaybeNullWhen(false)] out string value);
 }
