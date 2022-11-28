@@ -1,8 +1,5 @@
 ﻿using System;
-using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem;
-using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -14,10 +11,7 @@ public partial class MkdirCommand
     {
         ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
 
-        if (!ValidationHelper.IsDirectoryValid(directoryName))
-            throw new EternalFileSystemException(EternalFileSystemState.InvalidDirectoryName, directoryName.GetString());
-
-        context.Accessor.CreateSubEntry(context.CurrentDirectory.FatEntryReference, directoryName, true);
+        context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, directoryName), true);
 
         context.Writer.Append($"Created a directory {directoryName.GetString()}");
 

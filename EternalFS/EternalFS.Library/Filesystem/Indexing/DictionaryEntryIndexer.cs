@@ -25,14 +25,14 @@ public class DictionaryEntryIndexer : IEntryIndexer
         IndexFileSystem();
     }
 
-    public bool TryLocateEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName, out EternalFileSystemEntry entry)
+    public bool TryLocateEntry(in SubEntryInfo info, out EternalFileSystemEntry entry)
     {
-        return _entriesCache.TryGetValue(entryName.GetString(), out entry);
+        return _entriesCache.TryGetValue(info.Name.GetString(), out entry);
     }
 
-    public void RecordChange(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entrySpan, EntryChangeKind changeKind)
+    public void RecordChange(in SubEntryInfo info, EntryChangeKind changeKind)
     {
-        string entryName = GetEntryName(directoryEntry, entrySpan);
+        string entryName = GetEntryName(info);
 
         if (changeKind == EntryChangeKind.Remove)
         {
@@ -43,7 +43,7 @@ public class DictionaryEntryIndexer : IEntryIndexer
         var manager = new EternalFileSystemManager();
         manager.Initialize(_fileSystem);
 
-        var subEntry = manager.LocateSubEntry(directoryEntry, entrySpan);
+        var subEntry = manager.LocateSubEntry(info);
 
         if (changeKind == EntryChangeKind.Add)
         {
@@ -88,13 +88,13 @@ public class DictionaryEntryIndexer : IEntryIndexer
             for(int i = 0; i < entriesCount; i++)
             {
                 var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
-                _entriesCache.Add(GetEntryName(directoryEntry, entry.SubEntryName), entry);
+                _entriesCache.Add(GetEntryName(new(directoryEntry, entry.SubEntryName)), entry);
 
                 if (!entry.IsDirectory)
 	                continue;
 
                 ReadOnlySpan<byte> subDirectoryName = entry.SubEntryName;
-                subDirectoryName = subDirectoryName.TrimEnd(ByteSpanHelper.Null());
+                subDirectoryName = subDirectoryName.TrimEndNull();
                     
                 // skip parent directory and this directory, they have already been indexed.
                 if (subDirectoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()) ||
@@ -110,6 +110,6 @@ public class DictionaryEntryIndexer : IEntryIndexer
         }
     }
 
-    private static string GetEntryName(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName)
-        => $"{(ushort)directoryEntry}_{entryName.GetString()}";
+    private static string GetEntryName(in SubEntryInfo info)
+        => $"{(ushort)info.FatEntry}_{info.Name.GetString()}";
 }

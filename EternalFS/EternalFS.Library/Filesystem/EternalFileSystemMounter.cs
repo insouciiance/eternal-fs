@@ -2,6 +2,7 @@
 using System.IO;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Initializers;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem;
 
@@ -59,6 +60,9 @@ public static class EternalFileSystemMounter
             stream.Write(new byte[CLUSTER_SIZE_BYTES], 0, CLUSTER_SIZE_BYTES);
 
         stream.Seek(EternalFileSystemHelper.GetClusterOffset(initializer.Size, RootDirectoryEntry), SeekOrigin.Begin);
-        stream.WriteByte(0);
+        stream.MarshalWriteStructure(1);
+
+        EternalFileSystemEntry self = new(ByteSpanHelper.Period(), RootDirectoryEntry, true);
+        stream.MarshalWriteStructure(self);
     }
 }

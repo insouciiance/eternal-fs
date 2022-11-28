@@ -64,25 +64,22 @@ public static partial class CommandManager
 			if (filename == ReadOnlySpan<byte>.Empty)
 				return;
 
-			if (!ValidationHelper.IsFilenameValid(filename))
-				throw new EternalFileSystemException(EternalFileSystemState.InvalidFilename, filename.GetString());
-
 			if (context.FileSystem is null)
 				throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
 			try
 			{
-				context.Accessor.LocateSubEntry(context.CurrentDirectory.FatEntryReference, filename);
+				context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
 			}
 			catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
 			{
-				context.Accessor.CreateSubEntry(context.CurrentDirectory.FatEntryReference, filename, false);
+				context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
 			}
 
             byte[] bytes = Encoding.UTF8.GetBytes(context.Writer.ToString());
             MemoryStream ms = new(bytes);
 
-            context.Accessor.WriteFile(context.CurrentDirectory.FatEntryReference, filename, ms);
+            context.Accessor.WriteFile(new(context.CurrentDirectory.FatEntryReference, filename), ms);
 
 			context.Writer.Clear();
 		}

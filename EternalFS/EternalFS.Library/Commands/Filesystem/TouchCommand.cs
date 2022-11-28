@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -12,7 +11,7 @@ public partial class TouchCommand
     {
         ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
 
-        context.Accessor.CreateSubEntry(context.CurrentDirectory.FatEntryReference, fileName, false);
+        context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, fileName), false);
         context.Writer.Append($"Created a file {fileName.GetString()}");
 
         return CommandExecutionResult.Default;

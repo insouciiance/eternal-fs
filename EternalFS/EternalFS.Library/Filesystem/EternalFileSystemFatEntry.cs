@@ -37,7 +37,7 @@ public readonly struct EternalFileSystemFatEntry
 
     public static implicit operator EternalFileSystemFatEntry(ushort entry)
     {
-        byte byte1 = (byte)((entry & 0xFF00) >> 2);
+        byte byte1 = (byte)((entry & 0xFF00) >> 8);
         byte byte2 = (byte)(entry & 0x00FF);
 
         return new(byte1, byte2);

@@ -9,7 +9,7 @@ public interface IEntryIndexer
 {
     void Initialize(EternalFileSystem fileSystem);
 
-    bool TryLocateEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName, out EternalFileSystemEntry entry);
+    bool TryLocateEntry(in SubEntryInfo info, out EternalFileSystemEntry entry);
 
-    void RecordChange(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> entryName, EntryChangeKind changeKind);
+    void RecordChange(in SubEntryInfo info, EntryChangeKind changeKind);
 }

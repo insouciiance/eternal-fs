@@ -7,7 +7,7 @@ TerminalRunner runner = new();
 
 runner.OnStart += (ref CommandExecutionContext context) =>
 {
-    string command = "mkfs -n=TestFS -s=10000";
+    string command = "mkfs -n=TestFS -s=1000000";
     using var stream = new MemoryStream(Encoding.UTF8.GetBytes(command));
     CommandManager.ExecuteCommand(stream, ref context);
 };

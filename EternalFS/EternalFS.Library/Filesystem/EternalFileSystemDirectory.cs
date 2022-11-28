@@ -25,10 +25,10 @@ public class EternalFileSystemDirectory
 		_accessor = accessor;
 	}
 
-	public void Push(in ReadOnlySpan<byte> subDirectoryName)
-	{
-		var subDirectory = _accessor.LocateSubEntry(_fatEntriesStack[^1], subDirectoryName);
-		_directoriesStack.Add(subDirectoryName.GetString());
+	public void Push(EternalFileSystemEntry subDirectory)
+    {
+        ReadOnlySpan<byte> subDirectoryName = subDirectory.SubEntryName;
+        _directoriesStack.Add(subDirectoryName.GetString());
 		_fatEntriesStack.Add(subDirectory.FatEntryReference);
 	}
 

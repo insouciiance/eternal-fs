@@ -23,8 +23,9 @@ public static class EternalFileSystemHelper
         for (int i = 0; i < entriesCount; i++)
         {
             var currentEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
+            ReadOnlySpan<byte> entryName = currentEntry.SubEntryName;
 
-            if (currentEntry.SubEntryName.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(subEntryName))
+            if (entryName.TrimEndNull().SequenceEqual(subEntryName))
             {
                 entry = currentEntry;
                 return true;

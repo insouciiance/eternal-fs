@@ -15,10 +15,7 @@ public partial class CatCommand
     {
         ReadOnlySpan<byte> filename = context.ValueSpan.SplitIndex();
 
-        if (!ValidationHelper.IsFilenameValid(filename))
-            throw new EternalFileSystemException(EternalFileSystemState.InvalidFilename, filename.GetString());
-
-        var fileEntry = context.Accessor.LocateSubEntry(context.CurrentDirectory.FatEntryReference, filename);
+        var fileEntry = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
         
         if (fileEntry.IsDirectory)
             throw new EternalFileSystemException(EternalFileSystemState.CantOpenFile, filename.GetString());

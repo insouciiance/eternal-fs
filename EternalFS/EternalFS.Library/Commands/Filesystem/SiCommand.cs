@@ -1,4 +1,4 @@
-﻿using EternalFS.Library.Filesystem.Accessors;
+﻿using EternalFS.Library.Filesystem.Accessors.Decorators;
 using EternalFS.Library.Filesystem.Indexing;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -10,7 +10,7 @@ public partial class SiCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        if (context.Accessor is EternalFileSystemIndexerAccessor { Indexer: DictionaryEntryIndexer indexer })
+        if (context.Accessor is EternalFileSystemIndexerAccessorDecorator { Indexer: DictionaryEntryIndexer indexer })
         {
             indexer.WriteInternalIndex(ref context);
             return CommandExecutionResult.Default;

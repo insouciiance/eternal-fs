@@ -1,6 +1,8 @@
 ﻿using System;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
+using EternalFS.Library.Filesystem;
+using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -11,19 +13,43 @@ public partial class CdCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
+        ReadOnlySpan<byte> directoryPath = context.ValueSpan.SplitIndex();
 
-        // just make sure the directory exists.
-	    var subDirectory = context.Accessor.LocateSubEntry(context.CurrentDirectory.FatEntryReference, directoryName);
+        EternalFileSystemDirectory currentDirectory = context.CurrentDirectory;
 
-	    if (!subDirectory.IsDirectory)
-		    throw new CommandExecutionException($"{directoryName.GetString()} is a file.");
+        context.Accessor.EntryLocated += LocateHandler;
 
-		if (directoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()))
-			context.CurrentDirectory.Pop();
-        else
-            context.CurrentDirectory.Push(directoryName);
+        try
+        {
+            var subDirectory = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, directoryPath));
 
-        return CommandExecutionResult.Default;
+            if (!subDirectory.IsDirectory)
+                throw new CommandExecutionException($"{directoryPath.GetString()} is a file.");
+
+            return CommandExecutionResult.Default;
+        }
+        finally
+        {
+            context.Accessor.EntryLocated -= LocateHandler;
+        }
+
+        void LocateHandler(object? _, EntryLocatedEventArgs args) => UpdateDirectory(currentDirectory, args.LocatedEntry);
+    }
+
+    private static void UpdateDirectory(EternalFileSystemDirectory directory, EternalFileSystemEntry entry)
+    {
+        ReadOnlySpan<byte> subEntryName = entry.SubEntryName;
+
+        // just ignore current directory
+        if (subEntryName.TrimEndNull().SequenceEqual(ByteSpanHelper.Period()))
+            return;
+
+        if (subEntryName.TrimEndNull().SequenceEqual(ByteSpanHelper.ParentDirectory()))
+        {
+            directory.Pop();
+            return;
+        }
+            
+        directory.Push(entry);
     }
 }

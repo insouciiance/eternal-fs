@@ -8,15 +8,17 @@ namespace EternalFS.Library.Filesystem.Accessors;
 /// </summary>
 public interface IEternalFileSystemAccessor
 {
+    event EventHandler<EntryLocatedEventArgs>? EntryLocated; 
+
     void Initialize(EternalFileSystem fileSystem);
 
-    EternalFileSystemEntry LocateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName);
+    EternalFileSystemEntry LocateSubEntry(in SubEntryInfo info);
 
-    EternalFileSystemEntry CreateSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> subEntryName, bool isDirectory);
+    EternalFileSystemEntry CreateSubEntry(in SubEntryInfo info, bool isDirectory);
 
-    void DeleteSubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName);
+    void DeleteSubEntry(in SubEntryInfo info);
 
-    void CopySubEntry(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to);
+    void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to);
 
-    void WriteFile(EternalFileSystemFatEntry directoryEntry, in ReadOnlySpan<byte> fileName, Stream source);
+    void WriteFile(in SubEntryInfo info, Stream source);
 }

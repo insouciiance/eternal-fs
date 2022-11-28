@@ -1,6 +1,6 @@
 ﻿using System;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem.Accessors;
+using EternalFS.Library.Filesystem.Accessors.Decorators;
 using EternalFS.Library.Filesystem.Indexing;
 using EternalFS.Library.Utils;
 
@@ -19,7 +19,7 @@ public partial class IndexfsCommand
     {
         DictionaryEntryIndexer indexer = new();
 
-        context.Accessor = new EternalFileSystemIndexerAccessor(context.Accessor, indexer);
+        context.Accessor = new EternalFileSystemIndexerAccessorDecorator(context.Accessor, indexer);
         context.Accessor.Initialize(context.FileSystem);
         context.CurrentDirectory.SetAccessor(context.Accessor);
 

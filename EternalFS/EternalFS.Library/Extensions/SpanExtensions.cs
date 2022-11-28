@@ -27,15 +27,18 @@ public static class SpanExtensions
             endIndex = span[startIndex..].IndexOf(delimiter) + startIndex;
         }
 
-        return endIndex != startIndex - 1 ? span[startIndex..endIndex] : span[startIndex..].TrimEnd(ByteSpanHelper.Null());
+        return endIndex != startIndex - 1 ? span[startIndex..endIndex] : span[startIndex..].TrimEndNull();
     }
 
-    public static ReadOnlySpan<byte> SplitIndex(in this ReadOnlySpan<byte> span, int index = 0)
+    public static ReadOnlySpan<byte> SplitIndex(this in ReadOnlySpan<byte> span, int index = 0)
         => SplitIndex(span, ByteSpanHelper.Space(), index);
 
-    public static bool Contains(in this ReadOnlySpan<byte> span, in ReadOnlySpan<byte> subSpan)
+    public static bool Contains(this in ReadOnlySpan<byte> span, in ReadOnlySpan<byte> subSpan)
         => span.IndexOf(subSpan) != -1;
 
-    public static string GetString(in this ReadOnlySpan<byte> span, Encoding? encoding = null)
+    public static string GetString(this in ReadOnlySpan<byte> span, Encoding? encoding = null)
         => (encoding ?? Encoding.UTF8).GetString(span);
+
+    public static ReadOnlySpan<byte> TrimEndNull(this scoped in ReadOnlySpan<byte> span)
+        => span.TrimEnd(ByteSpanHelper.Null());
 }

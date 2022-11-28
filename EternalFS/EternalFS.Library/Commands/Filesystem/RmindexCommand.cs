@@ -1,4 +1,4 @@
-﻿using EternalFS.Library.Filesystem.Accessors;
+﻿using EternalFS.Library.Filesystem.Accessors.Decorators;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -8,7 +8,7 @@ public partial class RmindexCommand
 {
 	public CommandExecutionResult Execute(ref CommandExecutionContext context)
 	{
-		if (context.Accessor is not EternalFileSystemIndexerAccessor indexerAccessor)
+		if (context.Accessor is not EternalFileSystemIndexerAccessorDecorator indexerAccessor)
 			return CommandExecutionResult.Default;
 
 		context.Accessor = indexerAccessor.Accessor;

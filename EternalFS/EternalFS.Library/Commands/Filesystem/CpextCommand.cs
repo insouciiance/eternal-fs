@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using EternalFS.Library.Extensions;
+using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands.Filesystem;
@@ -22,15 +23,21 @@ public partial class CpextCommand
 
         if (context.ValueSpan.Contains(Reverse()))
         {
-            // can't use tuple because of ref struct
-            ReadOnlySpan<byte> tmp = from;
-            from = to;
-            to = tmp;
+            CopyReverse(ref context, from, to);
+            return CommandExecutionResult.Default;
         }
 
-        using FileStream source = File.OpenRead(from.GetString());
-        context.Accessor.WriteFile(context.CurrentDirectory.FatEntryReference, to, source);
+        using FileStream source = File.Open(from.GetString(), FileMode.OpenOrCreate, FileAccess.Read);
+        context.Accessor.WriteFile(new(context.CurrentDirectory.FatEntryReference, to), source);
 
         return CommandExecutionResult.Default;
+    }
+
+    private static void CopyReverse(ref CommandExecutionContext context, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
+    {
+        var fromEntry = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, from));
+        using EternalFileSystemFileStream source = new(context.FileSystem, fromEntry.FatEntryReference);
+        using FileStream destination = File.Open(to.GetString(), FileMode.OpenOrCreate, FileAccess.Write);
+        source.CopyTo(destination);
     }
 }
