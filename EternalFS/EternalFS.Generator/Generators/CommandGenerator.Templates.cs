@@ -138,6 +138,10 @@ public static partial class {commandManagerTypeName}
             context.Writer.Append(e.Message);
             result = CommandExecutionResult.Default;
         }}
+        finally
+        {{
+            context.ServiceLocator.Dispose();
+        }}
 
         return result;
     }}

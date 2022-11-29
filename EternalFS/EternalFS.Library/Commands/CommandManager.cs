@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Text;
 using EternalFS.Library.Commands;
 using EternalFS.Library.Commands.Miscellaneous;
@@ -29,6 +31,9 @@ public static partial class CommandManager
 	[ByteSpan(" > ")]
 	private static partial ReadOnlySpan<byte> WriteDelimiter();
 
+	[ByteSpan("-mt")]
+    private static partial ReadOnlySpan<byte> MeasureTime();
+
 	static partial void PreprocessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
 	{
 		context.ValueSpan = context.ValueSpan.SplitIndex(WriteDelimiter());
@@ -42,6 +47,7 @@ public static partial class CommandManager
 			throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
 		HandleHelpArgument(ref context, input, ref result);
+		HandleMeasureTime(ref context, input);
 
 		static void HandleHelpArgument(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
 		{
@@ -51,11 +57,22 @@ public static partial class CommandManager
 			context.ValueSpan = input.SplitIndex(Help());
 			result = ManCommand.Instance.Execute(ref context);
 		}
+
+        static void HandleMeasureTime(ref CommandExecutionContext context, in ReadOnlySpan<byte> input)
+        {
+            if (input.Contains(MeasureTime()))
+            {
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+				context.ServiceLocator.Add(stopwatch);
+            }
+        }
 	}
 
 	static partial void PostProcessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
 	{
 		HandleFileDelimiter(ref context, input);
+		HandleMeasureTime(ref context);
 
 		static void HandleFileDelimiter(ref CommandExecutionContext context, in ReadOnlySpan<byte> input)
 		{
@@ -83,5 +100,14 @@ public static partial class CommandManager
 
 			context.Writer.Clear();
 		}
+
+        static void HandleMeasureTime(ref CommandExecutionContext context)
+        {
+            if (context.ServiceLocator.TryGet<Stopwatch>(out var stopwatch))
+            {
+				stopwatch.Stop();
+                context.Writer.Append($"\nElapsed time (ticks): {stopwatch.ElapsedTicks}");
+            }
+        }
 	}
 }

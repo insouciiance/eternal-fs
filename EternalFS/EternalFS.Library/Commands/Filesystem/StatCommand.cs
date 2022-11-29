@@ -12,12 +12,10 @@ public partial class StatCommand
     {
         ReadOnlySpan<byte> subEntryName = context.ValueSpan.SplitIndex();
 
+        var entry = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, subEntryName));
+
         string entryString = subEntryName.GetString();
-        
-        if (EternalFileSystemHelper.TryLocateSubEntry(context.FileSystem, context.CurrentDirectory.FatEntryReference, subEntryName, out var subEntry))
-            PrintEntryInfo(ref context, subEntry, entryString);
-        else
-            context.Writer.Append($"{entryString} not found.");
+        PrintEntryInfo(ref context, entry, entryString);
 
         return CommandExecutionResult.Default;
 

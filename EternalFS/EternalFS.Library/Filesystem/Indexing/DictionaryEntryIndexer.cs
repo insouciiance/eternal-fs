@@ -27,7 +27,7 @@ public class DictionaryEntryIndexer : IEntryIndexer
 
     public bool TryLocateEntry(in SubEntryInfo info, out EternalFileSystemEntry entry)
     {
-        return _entriesCache.TryGetValue(info.Name.GetString(), out entry);
+        return _entriesCache.TryGetValue(GetEntryName(info), out entry);
     }
 
     public void RecordChange(in SubEntryInfo info, EntryChangeKind changeKind)
@@ -88,20 +88,22 @@ public class DictionaryEntryIndexer : IEntryIndexer
             for(int i = 0; i < entriesCount; i++)
             {
                 var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
-                _entriesCache.Add(GetEntryName(new(directoryEntry, entry.SubEntryName)), entry);
+
+                ReadOnlySpan<byte> subEntryName = entry.SubEntryName;
+                subEntryName = subEntryName.TrimEndNull();
+
+                _entriesCache.Add(GetEntryName(new(directoryEntry, subEntryName)), entry);
 
                 if (!entry.IsDirectory)
 	                continue;
 
-                ReadOnlySpan<byte> subDirectoryName = entry.SubEntryName;
-                subDirectoryName = subDirectoryName.TrimEndNull();
                     
                 // skip parent directory and this directory, they have already been indexed.
-                if (subDirectoryName.SequenceEqual(ByteSpanHelper.ParentDirectory()) ||
-                    subDirectoryName.SequenceEqual(ByteSpanHelper.Period()))
+                if (subEntryName.SequenceEqual(ByteSpanHelper.ParentDirectory()) ||
+                    subEntryName.SequenceEqual(ByteSpanHelper.Period()))
 	                continue;
                     
-                directoryStack.Add(subDirectoryName.GetString());
+                directoryStack.Add(subEntryName.GetString());
                     
                 IndexDirectory(entry.FatEntryReference);
             }
@@ -111,5 +113,8 @@ public class DictionaryEntryIndexer : IEntryIndexer
     }
 
     private static string GetEntryName(in SubEntryInfo info)
-        => $"{(ushort)info.FatEntry}_{info.Name.GetString()}";
+    {
+        string entryName = $"{(ushort)info.FatEntry}_{info.Name.GetString()}";
+        return entryName;
+    }
 }

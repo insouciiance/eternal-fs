@@ -2,6 +2,7 @@
 using System.Text;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Filesystem.Accessors;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands;
 
@@ -22,6 +23,8 @@ public ref struct CommandExecutionContext
 	public StringBuilder Writer { get; init; } = new();
 
 	public EternalFileSystemDirectory CurrentDirectory { get; init; } = new();
+
+    public ServiceLocator ServiceLocator { get; init; } = new();
 
 	public CommandExecutionContext() { }
 }
