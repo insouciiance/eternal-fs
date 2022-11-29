@@ -21,7 +21,6 @@ public partial class IndexfsCommand
 
         context.Accessor = new EternalFileSystemIndexerAccessorDecorator(context.Accessor, indexer);
         context.Accessor.Initialize(context.FileSystem);
-        context.CurrentDirectory.SetAccessor(context.Accessor);
 
         context.Writer.Append("Created an index over the execution context");
 

@@ -26,8 +26,6 @@ public class TerminalRunner
                     new DefaultEternalFileSystemValidator()))
         };
 
-        context.CurrentDirectory.SetAccessor(context.Accessor);
-
         OnStart?.Invoke(ref context);
 
         do

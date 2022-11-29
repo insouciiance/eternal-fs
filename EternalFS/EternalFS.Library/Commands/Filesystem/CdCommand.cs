@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
@@ -39,16 +40,19 @@ public partial class CdCommand
     private static void UpdateDirectory(EternalFileSystemDirectory directory, EternalFileSystemEntry entry)
     {
         ReadOnlySpan<byte> subEntryName = entry.SubEntryName;
-
-        // just ignore current directory
-        if (subEntryName.TrimEndNull().SequenceEqual(ByteSpanHelper.Period()))
-            return;
-
+        
         if (subEntryName.TrimEndNull().SequenceEqual(ByteSpanHelper.ParentDirectory()))
         {
             directory.Pop();
             return;
         }
+
+        if (entry.FatEntryReference == EternalFileSystemMounter.RootDirectoryEntry)
+            directory.Clear();
+
+        // just ignore current directory
+        if (subEntryName.TrimEndNull().SequenceEqual(ByteSpanHelper.Period()))
+            return;
             
         directory.Push(entry);
     }

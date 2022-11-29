@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem.Accessors.Decorators;
 
@@ -44,19 +45,24 @@ public class EternalFileSystemPathResolverAccessorDecorator : EternalFileSystemA
 
     private SubEntryInfo TraversePath(in SubEntryInfo info)
     {
+        // short path for root entry
+        if (info.Name.SequenceEqual(ByteSpanHelper.ForwardSlash()))
+            return new SubEntryInfo(EternalFileSystemMounter.RootDirectoryEntry, ByteSpanHelper.Period());
+
         EternalFileSystemSubEntryEnumerator enumerator = new(info.Name);
 
+        enumerator.MoveNext();
+
+        ReadOnlySpan<byte> current = enumerator.Current;
         EternalFileSystemFatEntry currentFatEntry = info.FatEntry;
 
         while (enumerator.MoveNext())
         {
-            if (info.Name.EndsWith(enumerator.Current))
-                return new(currentFatEntry, enumerator.Current);
-
-            var currentEntry = Accessor.LocateSubEntry(new(currentFatEntry, enumerator.Current));
+            var currentEntry = Accessor.LocateSubEntry(new(currentFatEntry, current));
             currentFatEntry = currentEntry.FatEntryReference;
+            current = enumerator.Current;
         }
 
-        throw new UnreachableException();
+        return new SubEntryInfo(currentFatEntry, current);
     }
 }
