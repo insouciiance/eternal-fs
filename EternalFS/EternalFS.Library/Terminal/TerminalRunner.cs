@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using EternalFS.Library.Commands;
 using EternalFS.Library.Filesystem.Accessors;
-using EternalFS.Library.Filesystem.Accessors.Decorators;
+using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Filesystem.Validation;
 
 namespace EternalFS.Library.Terminal;
@@ -20,10 +20,7 @@ public class TerminalRunner
         
         CommandExecutionContext context = new()
         {
-            Accessor = new EternalFileSystemPathResolverAccessorDecorator(
-                new EternalFileSystemValidatorAccessorDecorator(
-                    new EternalFileSystemManager(),
-                    new DefaultEternalFileSystemValidator()))
+            Accessor = SetupAccessors()
         };
 
         OnStart?.Invoke(ref context);
@@ -42,6 +39,18 @@ public class TerminalRunner
             
             context.Writer.Clear();
         } while (!commandResult.ShouldExit);
+    }
+
+    private static AccessorPipelineElement SetupAccessors()
+    {
+        EternalFileSystemPathResolverAccessor pathResolver = new();
+        EternalFileSystemValidatorAccessor validator = new(new DefaultEternalFileSystemValidator());
+        EternalFileSystemManager manager = new();
+
+        pathResolver.SetNext(validator);
+        validator.SetNext(manager);
+
+        return pathResolver;
     }
 
     public delegate void TerminalStartEventHandler(ref CommandExecutionContext context);

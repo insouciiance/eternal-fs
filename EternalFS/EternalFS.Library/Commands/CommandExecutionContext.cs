@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using EternalFS.Library.Filesystem;
-using EternalFS.Library.Filesystem.Accessors;
+using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Commands;
@@ -18,7 +18,7 @@ public ref struct CommandExecutionContext
 
 	public ReadOnlySpan<byte> ValueSpan { get; internal set; } = ReadOnlySpan<byte>.Empty;
 
-	public IEternalFileSystemAccessor Accessor { get; internal set; } = null!;
+	public AccessorPipelineElement Accessor { get; internal set; } = null!;
 
 	public StringBuilder Writer { get; init; } = new();
 

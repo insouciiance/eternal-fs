@@ -2,6 +2,7 @@
 using System.IO;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
+using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem.Accessors;
@@ -10,18 +11,18 @@ namespace EternalFS.Library.Filesystem.Accessors;
 /// Represents an <see cref="IEternalFileSystemAccessor"/>
 /// and provides various helper methods to simplify I/O operations.
 /// </summary>
-public class EternalFileSystemManager : IEternalFileSystemAccessor
+public class EternalFileSystemManager : AccessorPipelineElement
 {
     private EternalFileSystem _fileSystem = null!;
 
-    public event EventHandler<EntryLocatedEventArgs>? EntryLocated;
+    public override event EventHandler<EntryLocatedEventArgs>? EntryLocated;
 
-    public void Initialize(EternalFileSystem fileSystem)
+    public override void Initialize(EternalFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
     }
 
-    public EternalFileSystemEntry LocateSubEntry(in SubEntryInfo info)
+    public override EternalFileSystemEntry LocateSubEntry(in SubEntryInfo info)
     {
         using EternalFileSystemFileStream stream = new(_fileSystem, info.FatEntry);
 
@@ -52,7 +53,7 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         return subEntry;
     }
 
-    public EternalFileSystemEntry CreateSubEntry(in SubEntryInfo info, bool isDirectory = false)
+    public override EternalFileSystemEntry CreateSubEntry(in SubEntryInfo info, bool isDirectory)
     {
         using Stream fsStream = _fileSystem.GetStream();
 
@@ -91,7 +92,7 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         return newEntry;
     }
 
-    public void DeleteSubEntry(in SubEntryInfo info)
+    public override void DeleteSubEntry(in SubEntryInfo info)
     {
         var entry = LocateFile(info);
 
@@ -155,7 +156,7 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         }
     }
 
-    public void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to)
+    public override void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to)
     {
         // TODO: support directories
         var fromEntry = LocateFile(from);
@@ -169,7 +170,7 @@ public class EternalFileSystemManager : IEternalFileSystemAccessor
         OverwriteFileEntry(toEntry.FatEntryReference, to.FatEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
     }
 
-    public void WriteFile(in SubEntryInfo info, Stream source)
+    public override void WriteFile(in SubEntryInfo info, Stream source)
     {
         var fileEntry = LocateFile(info);
 

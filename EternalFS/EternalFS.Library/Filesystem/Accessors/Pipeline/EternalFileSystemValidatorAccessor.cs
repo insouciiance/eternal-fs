@@ -1,19 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using EternalFS.Library.Filesystem.Validation;
+﻿using EternalFS.Library.Filesystem.Validation;
 
-namespace EternalFS.Library.Filesystem.Accessors.Decorators;
+namespace EternalFS.Library.Filesystem.Accessors.Pipeline;
 
 /// <summary>
 /// Represents an <see cref="IEternalFileSystemAccessor"/> and uses <see cref="IEternalFileSystemValidator"/>
 /// before passing the input to the underlying <see cref="IEternalFileSystemAccessor"/>.
 /// </summary>
-public class EternalFileSystemValidatorAccessorDecorator : EternalFileSystemAccessorDecorator
+public class EternalFileSystemValidatorAccessor : AccessorPipelineElement
 {
     private readonly IEternalFileSystemValidator _validator;
 
-    [SetsRequiredMembers]
-    public EternalFileSystemValidatorAccessorDecorator(IEternalFileSystemAccessor accessor, IEternalFileSystemValidator validator)
-        : base(accessor)
+    public EternalFileSystemValidatorAccessor(IEternalFileSystemValidator validator)
     {
         _validator = validator;
     }
@@ -25,18 +22,18 @@ public class EternalFileSystemValidatorAccessorDecorator : EternalFileSystemAcce
         else
             _validator.ValidateFileEntry(info.Name);
 
-        return Accessor.CreateSubEntry(info, isDirectory);
+        return base.CreateSubEntry(info, isDirectory);
     }
 
     public override void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to)
     {
-        var subEntry = Accessor.LocateSubEntry(from);
+        var subEntry = base.LocateSubEntry(from);
 
         if (subEntry.IsDirectory)
             _validator.ValidateDirectoryEntry(to.Name);
         else
             _validator.ValidateFileEntry(to.Name);
 
-        Accessor.CopySubEntry(from, to);
+        base.CopySubEntry(from, to);
     }
 }

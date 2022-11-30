@@ -1,6 +1,8 @@
 ﻿using System;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Filesystem.Accessors.Decorators;
+using EternalFS.Library.Filesystem.Accessors;
+using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Filesystem.Indexing;
 using EternalFS.Library.Utils;
 
@@ -18,8 +20,9 @@ public partial class IndexfsCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         DictionaryEntryIndexer indexer = new();
-
-        context.Accessor = new EternalFileSystemIndexerAccessorDecorator(context.Accessor, indexer);
+        EternalFileSystemIndexerAccessor indexerAccessor = new(indexer);
+        
+        InsertIndexer(context.Accessor);
         context.Accessor.Initialize(context.FileSystem);
 
         context.Writer.Append("Created an index over the execution context");
@@ -30,5 +33,14 @@ public partial class IndexfsCommand
 #endif
 
         return CommandExecutionResult.Default;
+
+        void InsertIndexer(AccessorPipelineElement element)
+        {
+            while (element.Next is not EternalFileSystemManager)
+                element = element.Next ?? throw new EternalFileSystemException("Unable to create an index for file system: EternalFileSystemManager not found.");
+
+            indexerAccessor.SetNext(element.Next);
+            element.SetNext(indexerAccessor);
+        }
     }
 }

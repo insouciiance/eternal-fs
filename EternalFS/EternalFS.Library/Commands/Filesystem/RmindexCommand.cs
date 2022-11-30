@@ -1,4 +1,5 @@
-﻿using EternalFS.Library.Filesystem.Accessors.Decorators;
+﻿using EternalFS.Library.Extensions;
+using EternalFS.Library.Filesystem.Accessors.Pipeline;
 
 namespace EternalFS.Library.Commands.Filesystem;
 
@@ -8,10 +9,7 @@ public partial class RmindexCommand
 {
 	public CommandExecutionResult Execute(ref CommandExecutionContext context)
 	{
-		if (context.Accessor is not EternalFileSystemIndexerAccessorDecorator indexerAccessor)
-			return CommandExecutionResult.Default;
-
-		context.Accessor = indexerAccessor.Accessor;
+		context.Accessor.Remove(element => element is EternalFileSystemIndexerAccessor);
 		context.Writer.Append("Removed the index from the execution context");
 		return CommandExecutionResult.Default;
 	}

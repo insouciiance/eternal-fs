@@ -1,7 +1,8 @@
-﻿using EternalFS.Library.Filesystem.Accessors.Decorators;
+﻿using EternalFS.Library.Extensions;
+using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Filesystem.Indexing;
 
-namespace EternalFS.Library.Commands.Filesystem;
+namespace EternalFS.Library.Commands.Debugging;
 
 #if DEBUG
 [Command("si", true)]
@@ -10,9 +11,10 @@ public partial class SiCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        if (context.Accessor is EternalFileSystemIndexerAccessorDecorator { Indexer: DictionaryEntryIndexer indexer })
+        if (context.Accessor.TryFind(element => element is EternalFileSystemIndexerAccessor, out var indexer) &&
+            ((EternalFileSystemIndexerAccessor)indexer).Indexer is DictionaryEntryIndexer dictIndexer)
         {
-            indexer.WriteInternalIndex(ref context);
+            dictIndexer.WriteInternalIndex(ref context);
             return CommandExecutionResult.Default;
         }
 
