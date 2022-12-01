@@ -65,8 +65,7 @@ public static class EternalFileSystemHelper
 
     public static int GetClustersCount(long size)
     {
-        return (int)((size - EternalFileSystemHeader.HeaderSize - 2) /
-                        (EternalFileSystemFatEntry.EntrySize + EternalFileSystemMounter.CLUSTER_SIZE_BYTES));
+        return (int)(size / (EternalFileSystemFatEntry.EntrySize + EternalFileSystemMounter.CLUSTER_SIZE_BYTES));
     }
 
     public static int GetClusterOffset(long size, EternalFileSystemFatEntry entry)

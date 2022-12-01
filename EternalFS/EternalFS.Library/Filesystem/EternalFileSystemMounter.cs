@@ -18,7 +18,7 @@ public static class EternalFileSystemMounter
 
     public const string ROOT_DIRECTORY_NAME = "ROOT";
 
-    public static readonly EternalFileSystemFatEntry RootDirectoryEntry = new(1);
+    public static readonly EternalFileSystemFatEntry RootDirectoryEntry = new(0);
 
     public static readonly EternalFileSystemFatEntry FatTerminator = new(0xFF, 0xFF);
 
@@ -45,8 +45,6 @@ public static class EternalFileSystemMounter
     private static void WriteAllocationTable<T>(IEternalFileSystemInitializer<T> initializer, Stream stream)
         where T : EternalFileSystem
     {
-        stream.MarshalWriteStructure(FatTerminator);
-
         stream.MarshalWriteStructure(FatTerminator);
         
         for (int i = 1; i < EternalFileSystemHelper.GetClustersCount(initializer.Size); i++)

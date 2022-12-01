@@ -58,7 +58,7 @@ public class EternalFileSystemManager : AccessorPipelineElement
         using Stream fsStream = _fileSystem.GetStream();
 
         if (!EternalFileSystemHelper.TryAllocateNewFatEntry(_fileSystem, out var newFatEntry))
-            throw new OutOfMemoryException();
+            throw new EternalFileSystemException(EternalFileSystemState.OutOfMemory);
 
         using EternalFileSystemFileStream stream = new(_fileSystem, info.FatEntry);
 

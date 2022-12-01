@@ -22,8 +22,6 @@ public class EternalFileSystemFileStream : Stream
 
     private readonly List<EternalFileSystemFatEntry> _fatEntries = new();
 
-    private readonly EternalFileSystemFatEntry _fatTerminator;
-
     private byte[] _currentCluster = null!;
 
     private int _currentClusterIndex;
@@ -36,7 +34,7 @@ public class EternalFileSystemFileStream : Stream
 
     public override long Length => 0;
 
-    public override long Position { get => GetPosition(); set => Seek(value, SeekOrigin.Begin); }
+    public override long Position { get => GetPosition(); set => Seek(value); }
 
     public EternalFileSystemFileStream(EternalFileSystem fileSystem, EternalFileSystemFatEntry fatEntry)
     {
@@ -45,7 +43,6 @@ public class EternalFileSystemFileStream : Stream
         _fatEntries.Add(fatEntry);
 
         _fileSystemStream.Seek(EternalFileSystemHeader.HeaderSize, SeekOrigin.Begin);
-        _fatTerminator = _fileSystemStream.MarshalReadStructure<EternalFileSystemFatEntry>();
 
         InitCurrentCluster();
     }
@@ -169,7 +166,7 @@ public class EternalFileSystemFileStream : Stream
         stream.Seek(EternalFileSystemHelper.GetFatEntryOffset(entry), SeekOrigin.Begin);
         nextEntry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
 
-        if (nextEntry == _fatTerminator || nextEntry == EternalFileSystemMounter.EmptyCluster)
+        if (nextEntry == EternalFileSystemMounter.FatTerminator || nextEntry == EternalFileSystemMounter.EmptyCluster)
         {
             if (!createNewCluster || !TryAllocateNewCluster(out nextEntry))
                 return false;
@@ -204,7 +201,7 @@ public class EternalFileSystemFileStream : Stream
                 int tailEntryOffset = EternalFileSystemHelper.GetFatEntryOffset(tailEntry);
                 _fileSystemStream.Seek(tailEntryOffset, SeekOrigin.Begin);
                 tailEntry = _fileSystemStream.MarshalReadStructure<EternalFileSystemFatEntry>();
-            } while (tailEntry != _fatTerminator);
+            } while (tailEntry != EternalFileSystemMounter.FatTerminator);
 
             _fileSystemStream.Position -= 2;
             _fileSystemStream.MarshalWriteStructure(entry);
