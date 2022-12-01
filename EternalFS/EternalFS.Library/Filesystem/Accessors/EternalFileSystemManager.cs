@@ -161,7 +161,16 @@ public class EternalFileSystemManager : AccessorPipelineElement
         // TODO: support directories
         var fromEntry = LocateFile(from);
 
-        EternalFileSystemEntry toEntry = CreateSubEntry(to, true);
+        EternalFileSystemEntry toEntry;
+
+        try
+        {
+            toEntry = LocateFile(to);
+        }
+        catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
+        {
+            toEntry = CreateSubEntry(to, false);
+        }
 
         using EternalFileSystemFileStream fromStream = new(_fileSystem, fromEntry.FatEntryReference);
         using EternalFileSystemFileStream toStream = new(_fileSystem, toEntry.FatEntryReference);
