@@ -9,6 +9,8 @@ namespace EternalFS.Library.Commands.Debugging;
 #if DEBUG
 [Command("entrygen", true)]
 [CommandSummary("Generates dummy file system entries. This is for debug purposes only.")]
+[CommandArgument("-d", "Depth of generated directories")]
+[CommandArgument("-c", "Number of entries in a directory")]
 public partial class EntrygenCommand
 {
     private const int DEFAULT_DEPTH = 5;
