@@ -136,6 +136,10 @@ public static partial class {commandManagerTypeName}
         {{
 			context.Writer.Clear();
             context.Writer.Append(e.Message);
+#if DEBUG
+            context.Writer.AppendLine();
+            context.Writer.Append(e.StackTrace);
+#endif
             result = CommandExecutionResult.Default;
         }}
         finally

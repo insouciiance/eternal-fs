@@ -21,4 +21,6 @@ public interface IEternalFileSystemAccessor
     void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to);
 
     void WriteFile(in SubEntryInfo info, Stream source);
+
+    Stream OpenEntry(EternalFileSystemFatEntry entry);
 }

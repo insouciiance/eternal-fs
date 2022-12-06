@@ -72,4 +72,12 @@ public class AccessorPipelineElement : IEternalFileSystemAccessor, IPipelineElem
 
         Next.WriteFile(info, source);
     }
+
+    public virtual Stream OpenEntry(EternalFileSystemFatEntry entry)
+    {
+        if (Next is null)
+            throw new EternalFileSystemException(EternalFileSystemState.Other);
+
+        return Next.OpenEntry(entry);
+    }
 }

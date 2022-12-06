@@ -97,7 +97,6 @@ public class DictionaryEntryIndexer : IEntryIndexer
                 if (!entry.IsDirectory)
 	                continue;
 
-                    
                 // skip parent directory and this directory, they have already been indexed.
                 if (subEntryName.SequenceEqual(ByteSpanHelper.ParentDirectory()) ||
                     subEntryName.SequenceEqual(ByteSpanHelper.Period()))

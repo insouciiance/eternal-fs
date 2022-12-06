@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using EternalFS.Library.Extensions;
-using EternalFS.Library.Utils;
 
 namespace EternalFS.Library.Filesystem;
 

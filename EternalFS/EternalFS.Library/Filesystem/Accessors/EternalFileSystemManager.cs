@@ -192,6 +192,11 @@ public class EternalFileSystemManager : AccessorPipelineElement
         OverwriteFileEntry(fileEntry.FatEntryReference, info.FatEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
     }
 
+    public override Stream OpenEntry(EternalFileSystemFatEntry entry)
+    {
+        return new EternalFileSystemFileStream(_fileSystem, entry);
+    }
+
     private void OverwriteFileEntry(
         EternalFileSystemFatEntry fileEntry,
         EternalFileSystemFatEntry directoryEntry,
