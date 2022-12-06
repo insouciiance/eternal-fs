@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using EternalFS.Library.Collections;
 using EternalFS.Library.Commands;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
@@ -16,12 +19,15 @@ public class DictionaryEntryIndexer : IEntryIndexer
 {
     private readonly Dictionary<string, EternalFileSystemEntry> _entriesCache = new();
 
+    private readonly ListDictionary<EternalFileSystemFatEntry, EternalFileSystemEntry> _subEntriesCache = new();
+
     private EternalFileSystem _fileSystem = null!;
 
     public void Initialize(EternalFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
         _entriesCache.Clear();
+        _subEntriesCache.Clear();
         IndexFileSystem();
     }
 
@@ -37,6 +43,7 @@ public class DictionaryEntryIndexer : IEntryIndexer
         if (changeKind == EntryChangeKind.Remove)
         {
             _entriesCache.Remove(entryName);
+            _subEntriesCache.Remove(info.FatEntry);
             return;
         }
 
@@ -48,10 +55,14 @@ public class DictionaryEntryIndexer : IEntryIndexer
         if (changeKind == EntryChangeKind.Add)
         {
             _entriesCache.Add(entryName, subEntry);
+            _subEntriesCache.Add(info.FatEntry, subEntry);
             return;
         }
 
         _entriesCache[entryName] = subEntry;
+
+        var index = _subEntriesCache[info.FatEntry].FindIndex(e => e.SubEntryName.SequenceEqual(subEntry.SubEntryName));
+        _subEntriesCache[info.FatEntry][index] = subEntry;
     }
 
     [Conditional("DEBUG")]
@@ -68,6 +79,18 @@ public class DictionaryEntryIndexer : IEntryIndexer
         {
             return _entriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
         }
+    }
+
+    public bool TryEnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption, [MaybeNullWhen(false)] out IEnumerable<EternalFileSystemEntry> entries)
+    {
+        if (_subEntriesCache.TryGetValue(directory, out var list))
+        {
+            entries = list;
+            return true;
+        }
+
+        entries = null;
+        return false;
     }
 
     private void IndexFileSystem()
@@ -93,6 +116,7 @@ public class DictionaryEntryIndexer : IEntryIndexer
                 subEntryName = subEntryName.TrimEndNull();
 
                 _entriesCache.Add(GetEntryName(new(directoryEntry, subEntryName)), entry);
+                _subEntriesCache.Add(directoryEntry, entry);
 
                 if (!entry.IsDirectory)
 	                continue;

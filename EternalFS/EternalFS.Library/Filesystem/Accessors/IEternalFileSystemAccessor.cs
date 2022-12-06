@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace EternalFS.Library.Filesystem.Accessors;
@@ -21,6 +22,8 @@ public interface IEternalFileSystemAccessor
     void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to);
 
     void WriteFile(in SubEntryInfo info, Stream source);
+
+    IEnumerable<EternalFileSystemEntry> EnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption);
 
     Stream OpenEntry(EternalFileSystemFatEntry entry);
 }

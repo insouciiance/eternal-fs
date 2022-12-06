@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
@@ -190,6 +191,11 @@ public class EternalFileSystemManager : AccessorPipelineElement
 
         int length = (int)source.Length;
         OverwriteFileEntry(fileEntry.FatEntryReference, info.FatEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
+    }
+
+    public override IEnumerable<EternalFileSystemEntry> EnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption)
+    {
+        return EternalFileSystemAccessorHelper.EnumerateEntries(this, directory, searchOption);
     }
 
     public override Stream OpenEntry(EternalFileSystemFatEntry entry)

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using EternalFS.Library.Filesystem.Indexing;
 
@@ -49,6 +50,14 @@ public class EternalFileSystemIndexerAccessor : AccessorPipelineElement
     {
         base.WriteFile(info, source);
         Indexer.RecordChange(info, EntryChangeKind.Modify);
+    }
+
+    public override IEnumerable<EternalFileSystemEntry> EnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption)
+    {
+        if (Indexer.TryEnumerateEntries(directory, searchOption, out var entries))
+            return entries;
+
+        return base.EnumerateEntries(directory, searchOption);
     }
 
     public override void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to)

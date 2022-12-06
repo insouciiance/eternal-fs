@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
@@ -21,23 +23,17 @@ public partial class LsCommand
     {
         using EternalFileSystemFileStream stream = new(context.FileSystem, context.CurrentDirectory.FatEntryReference);
 
-        int entriesCount = stream.MarshalReadStructure<int>();
-
-        HashSet<EternalFileSystemEntry> subEntries = new();
-
-        for (int i = 0; i < entriesCount; i++)
-        {
-            EternalFileSystemEntry subEntry = stream.MarshalReadStructure<EternalFileSystemEntry>();
-            subEntries.Add(subEntry);
-        }
+        var subEntries = context.Accessor.EnumerateEntries(context.CurrentDirectory.FatEntryReference, SearchOption.TopDirectoryOnly);
 
         DumpInfo(ref context, subEntries);
 
         return CommandExecutionResult.Default;
     }
 
-    private static void DumpInfo(ref CommandExecutionContext context, HashSet<EternalFileSystemEntry> subEntries)
+    private static void DumpInfo(ref CommandExecutionContext context, IEnumerable<EternalFileSystemEntry> subEntries)
     {
+        subEntries = subEntries.ToArray();
+
         DumpDirectories(ref context);
         DumpFiles(ref context);
 

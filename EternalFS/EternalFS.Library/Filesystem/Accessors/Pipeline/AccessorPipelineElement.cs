@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Utils;
@@ -71,6 +72,14 @@ public class AccessorPipelineElement : IEternalFileSystemAccessor, IPipelineElem
             throw new EternalFileSystemException(EternalFileSystemState.Other);
 
         Next.WriteFile(info, source);
+    }
+
+    public virtual IEnumerable<EternalFileSystemEntry> EnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption)
+    {
+        if (Next is null)
+            throw new EternalFileSystemException(EternalFileSystemState.Other);
+
+        return Next.EnumerateEntries(directory, searchOption);
     }
 
     public virtual Stream OpenEntry(EternalFileSystemFatEntry entry)
