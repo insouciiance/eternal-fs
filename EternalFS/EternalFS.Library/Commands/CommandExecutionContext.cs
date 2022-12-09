@@ -27,4 +27,14 @@ public ref struct CommandExecutionContext
     public ServiceLocator ServiceLocator { get; init; } = new();
 
 	public CommandExecutionContext() { }
+
+	public static CommandExecutionContext From(scoped ref CommandExecutionContext context)
+	{
+		return new()
+		{
+			FileSystem = context.FileSystem,
+			CurrentDirectory = context.CurrentDirectory,
+			Accessor = context.Accessor
+		};
+	}
 }

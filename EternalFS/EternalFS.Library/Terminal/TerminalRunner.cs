@@ -18,15 +18,16 @@ public class TerminalRunner
     {
         CommandExecutionResult commandResult;
         
-        CommandExecutionContext context = new()
-        {
-            Accessor = SetupAccessors()
-        };
+        var accessor = SetupAccessors();
+
+        CommandExecutionContext context = new() { Accessor = accessor };
 
         OnStart?.Invoke(ref context);
 
         do
         {
+            context = CommandExecutionContext.From(ref context);
+
             string directoryString = string.Join("/", context.CurrentDirectory.Path);
             Console.Write(WRITER_PATH_OUTPUT_FORMAT, directoryString);
 

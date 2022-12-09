@@ -142,10 +142,6 @@ public static partial class {commandManagerTypeName}
 #endif
             result = CommandExecutionResult.Default;
         }}
-        finally
-        {{
-            context.ServiceLocator.Dispose();
-        }}
 
         return result;
     }}

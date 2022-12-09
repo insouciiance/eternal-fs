@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EternalFS.Library.Utils;
 
-public class ServiceLocator : IDisposable
+public class ServiceLocator
 {
     private readonly Dictionary<Type, object> _services = new();
 
@@ -32,16 +32,5 @@ public class ServiceLocator : IDisposable
 
         value = default;
         return false;
-    }
-
-    public void Dispose()
-    {
-        foreach (var (_, entry) in _services)
-        {
-            if (entry is IDisposable disposable)
-                disposable.Dispose();
-        }
-
-        _services.Clear();
     }
 }
