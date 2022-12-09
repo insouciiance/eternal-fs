@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using EternalFS.Library.Commands;
 using EternalFS.Library.Terminal;
@@ -16,4 +17,10 @@ static void RunCommand(string command, ref CommandExecutionContext context)
 {
     using var stream = new MemoryStream(Encoding.UTF8.GetBytes(command));
     CommandManager.ExecuteCommand(stream, ref context);
+
+    if (context.Writer.Length > 0)
+    {
+        Console.WriteLine(context.Writer);
+        context.Writer.Clear();
+    }
 }
