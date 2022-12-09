@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using EternalFS.Library.Filesystem.Indexing;
@@ -12,6 +13,8 @@ namespace EternalFS.Library.Filesystem.Accessors.Pipeline;
 public class EternalFileSystemIndexerAccessor : AccessorPipelineElement
 {
     public required IEntryIndexer Indexer { get; init; }
+
+    public override event EventHandler<EntryLocatedEventArgs>? EntryLocated;
 
     [SetsRequiredMembers]
     public EternalFileSystemIndexerAccessor(IEntryIndexer indexer)
@@ -28,7 +31,10 @@ public class EternalFileSystemIndexerAccessor : AccessorPipelineElement
     public override EternalFileSystemEntry LocateSubEntry(in SubEntryInfo info)
     {
         if (Indexer.TryLocateEntry(info, out var subEntry))
+        {
+            EntryLocated?.Invoke(this, new(subEntry));
             return subEntry;
+        }
 
         return base.LocateSubEntry(info);
     }
