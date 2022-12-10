@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Diagnostics;
+using System.Diagnostics;
 
 namespace EternalFS.Generator.Extensions;
 

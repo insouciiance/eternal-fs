@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
@@ -16,10 +16,10 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Include="../EternalFS.Library/Commands/CommandAttribute.cs" LinkBase="EternalFS.Library/Commands" />
-    <Compile Include="../EternalFS.Library/Commands/CommandSummaryAttribute.cs" LinkBase="EternalFS.Library/Commands" />
-    <Compile Include="../EternalFS.Library/Commands/CommandArgumentAttribute.cs" LinkBase="EternalFS.Library/Commands" />
-    <Compile Include="../EternalFS.Library/Commands/CommandExecutionState.cs" LinkBase="EternalFS.Library/Commands" />
+    <Compile Include="../EternalFS.Commands/CommandAttribute.cs" LinkBase="EternalFS.Library/Commands" />
+    <Compile Include="../EternalFS.Commands/CommandSummaryAttribute.cs" LinkBase="EternalFS.Library/Commands" />
+    <Compile Include="../EternalFS.Commands/CommandArgumentAttribute.cs" LinkBase="EternalFS.Library/Commands" />
+    <Compile Include="../EternalFS.Commands/CommandExecutionState.cs" LinkBase="EternalFS.Library/Commands" />
 
     <Compile Include="../EternalFS.Library/Utils/ByteSpanAttribute.cs" LinkBase="EternalFS.Library/Utils" />
     <Compile Include="../EternalFS.Library/Utils/StringMapAttribute.cs" LinkBase="EternalFS.Library/Utils" />

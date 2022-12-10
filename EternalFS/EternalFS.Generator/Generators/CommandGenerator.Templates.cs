@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using EternalFS.Generator.Extensions;
 using EternalFS.Generator.Utils;
-using EternalFS.Library.Commands;
+using EternalFS.Commands;
 using Microsoft.CodeAnalysis;
 
 using static EternalFS.Generator.Utils.TemplatesHelper;
@@ -26,7 +26,7 @@ public partial class CommandGenerator
         string commandDeclarationName = command.ToDisplayString(CommonFormats.Declaration);
 
         return $@"
-using EternalFS.Library.Commands;
+using EternalFS.Commands;
 using EternalFS.Library.Utils;
 
 namespace {command.ContainingNamespace};
@@ -72,7 +72,7 @@ CommandDocumentation.CreateBuilder()
     {
         IList<string> usings = new HashSet<string>(CollectUsings(commands))
         {
-            "EternalFS.Library.Diagnostics",
+            "EternalFS.Commands.Diagnostics",
             "EternalFS.Library.Extensions",
             "EternalFS.Library.Filesystem",
             "EternalFS.Library.Utils",

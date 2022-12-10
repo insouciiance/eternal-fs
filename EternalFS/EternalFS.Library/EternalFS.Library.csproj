@@ -14,7 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Filesystem\Validation\" />
+    <CompilerVisibleProperty Include="EternalFSGenerateCommandManager" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <EternalFSGenerateCommandManager>False</EternalFSGenerateCommandManager>
+  </PropertyGroup>
+  
 </Project>

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using EternalFS.Library.Commands;
-using EternalFS.Library.Terminal;
+using EternalFS.Commands;
+using EternalFS.Commands.Terminal;
 
 TerminalRunner runner = new();
 

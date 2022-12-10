@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text;
 using EternalFS.Library.Collections;
-using EternalFS.Library.Commands;
+using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;
@@ -66,14 +67,14 @@ public class DictionaryEntryIndexer : IEntryIndexer
     }
 
     [Conditional("DEBUG")]
-    internal void WriteInternalIndex(ref CommandExecutionContext context)
+    public void WriteInternalIndex(StringBuilder builder)
     {
-        context.Writer.AppendLine("\nInternal index map:");
+        builder.AppendLine("\nInternal index map:");
 
         var index = GetInternalIndex();
 
         foreach (var (key, value) in index)
-            context.Writer.AppendLine($$"""{ {{key}}, {{value}} }""");
+            builder.AppendLine($$"""{ {{key}}, {{value}} }""");
 
         Dictionary<string, string> GetInternalIndex()
         {
