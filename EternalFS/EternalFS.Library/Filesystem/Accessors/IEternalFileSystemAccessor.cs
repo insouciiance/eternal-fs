@@ -21,7 +21,7 @@ public interface IEternalFileSystemAccessor
 
     void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to);
 
-    void WriteFile(in SubEntryInfo info, Stream source);
+    void WriteFile(in SubEntryInfo info, Stream source, bool append = false);
 
     IEnumerable<EternalFileSystemEntry> EnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption);
 

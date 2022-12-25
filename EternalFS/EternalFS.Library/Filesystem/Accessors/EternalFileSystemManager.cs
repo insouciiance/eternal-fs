@@ -180,16 +180,19 @@ public class EternalFileSystemManager : AccessorPipelineElement
         OverwriteFileEntry(toEntry.FatEntryReference, to.FatEntry, entry => new(fromEntry.Size, entry.SubEntryName, entry.FatEntryReference));
     }
 
-    public override void WriteFile(in SubEntryInfo info, Stream source)
+    public override void WriteFile(in SubEntryInfo info, Stream source, bool append = false)
     {
         var fileEntry = LocateFile(info);
 
-        using (EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry.FatEntryReference))
-        {
-            source.CopyTo(fileStream);
-        }
+        using EternalFileSystemFileStream fileStream = new(_fileSystem, fileEntry.FatEntryReference);
 
-        int length = (int)source.Length;
+        if (append)
+            fileStream.Seek(fileEntry.Size);
+
+        source.CopyTo(fileStream);
+
+        int length = (int)fileStream.Position;
+
         OverwriteFileEntry(fileEntry.FatEntryReference, info.FatEntry, entry => new(length, entry.SubEntryName, entry.FatEntryReference));
     }
 

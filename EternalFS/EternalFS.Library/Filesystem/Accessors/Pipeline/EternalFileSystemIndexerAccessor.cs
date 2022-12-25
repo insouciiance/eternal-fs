@@ -52,9 +52,9 @@ public class EternalFileSystemIndexerAccessor : AccessorPipelineElement
         Indexer.RecordChange(info, EntryChangeKind.Remove);
     }
 
-    public override void WriteFile(in SubEntryInfo info, Stream source)
+    public override void WriteFile(in SubEntryInfo info, Stream source, bool append = false)
     {
-        base.WriteFile(info, source);
+        base.WriteFile(info, source, append);
         Indexer.RecordChange(info, EntryChangeKind.Modify);
     }
 

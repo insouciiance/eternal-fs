@@ -66,12 +66,12 @@ public class AccessorPipelineElement : IEternalFileSystemAccessor, IPipelineElem
         Next.CopySubEntry(from, to);
     }
 
-    public virtual void WriteFile(in SubEntryInfo info, Stream source)
+    public virtual void WriteFile(in SubEntryInfo info, Stream source, bool append = false)
     {
         if (Next is null)
             throw new EternalFileSystemException(EternalFileSystemState.Other);
 
-        Next.WriteFile(info, source);
+        Next.WriteFile(info, source, append);
     }
 
     public virtual IEnumerable<EternalFileSystemEntry> EnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption)

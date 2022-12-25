@@ -24,10 +24,10 @@ public class EternalFileSystemPathResolverAccessor : AccessorPipelineElement
         base.DeleteSubEntry(traversed);
     }
 
-    public override void WriteFile(in SubEntryInfo info, Stream source)
+    public override void WriteFile(in SubEntryInfo info, Stream source, bool append = false)
     {
         var traversed = TraversePath(info);
-        base.WriteFile(traversed, source);
+        base.WriteFile(traversed, source, append);
     }
 
     public override void CopySubEntry(in SubEntryInfo from, in SubEntryInfo to)

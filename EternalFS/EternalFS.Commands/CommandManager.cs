@@ -33,6 +33,9 @@ public static partial class CommandManager
     [ByteSpan(">")]
     private static partial ReadOnlySpan<byte> WriteDelimiter();
 
+    [ByteSpan(">>")]
+    private static partial ReadOnlySpan<byte> AppendDelimiter();
+
     [ByteSpan("-mt")]
     private static partial ReadOnlySpan<byte> MeasureTime();
 
@@ -90,31 +93,41 @@ public static partial class CommandManager
         if (!context.Reader.IsFullyRead)
             context.Writer.Append("\nWARNING: there were unrecognized parts in the command.");
 
-        void HandleFileDelimiter(ref CommandExecutionContext context)
+        static void HandleFileDelimiter(ref CommandExecutionContext context)
         {
-            if (!context.Reader.TryReadNamedArgument(WriteDelimiter(), out var writeArgument))
-                return;
-
-            ReadOnlySpan<byte> filename = writeArgument.Value;
-
-            if (context.FileSystem is null)
-                throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
-
-            try
+            if (context.Reader.TryReadNamedArgument(WriteDelimiter(), out var writeArgument))
             {
-                context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
-            }
-            catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
-            {
-                context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
+                ReadOnlySpan<byte> filename = writeArgument.Value;
+                RedirectToFile(ref context, filename, false);
             }
 
-            byte[] bytes = Encoding.UTF8.GetBytes(context.Writer.ToString());
-            MemoryStream ms = new(bytes);
+            if (context.Reader.TryReadNamedArgument(AppendDelimiter(), out var appendArgument))
+            {
+                ReadOnlySpan<byte> filename = appendArgument.Value;
+                RedirectToFile(ref context, filename, true);
+            }
 
-            context.Accessor.WriteFile(new(context.CurrentDirectory.FatEntryReference, filename), ms);
+            void RedirectToFile(ref CommandExecutionContext context, scoped ReadOnlySpan<byte> filename, bool append)
+            {
+                if (context.FileSystem is null)
+                    throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
-            context.Writer.Clear();
+                try
+                {
+                    context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
+                }
+                catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
+                {
+                    context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
+                }
+
+                byte[] bytes = Encoding.UTF8.GetBytes(context.Writer.ToString());
+                MemoryStream ms = new(bytes);
+
+                context.Accessor.WriteFile(new(context.CurrentDirectory.FatEntryReference, filename), ms, append);
+
+                context.Writer.Clear();
+            }
         }
 
         static void HandleMeasureTime(ref CommandExecutionContext context)
