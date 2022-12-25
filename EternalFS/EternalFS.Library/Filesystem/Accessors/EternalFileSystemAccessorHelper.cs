@@ -37,12 +37,12 @@ public static class EternalFileSystemAccessorHelper
     public static DiskUsageInfo GetDiskUsageInfo(IEternalFileSystemAccessor accessor)
     {
         int bytesAllocatedUsed = 0;
-        int bytesAllocatedTotal = 0;
-        int entriesAllocated = 0;
+        int bytesAllocatedTotal = EternalFileSystemMounter.CLUSTER_SIZE_BYTES; // initial root directory cluster is always there
+        int entriesAllocated = 1; // root directory
 
         foreach (var entry in EnumerateEntries(accessor, EternalFileSystemMounter.RootDirectoryEntry, SearchOption.AllDirectories))
         {
-            if (!entry.IsCommonSubDirectory())
+            if (entry.IsDirectory && !entry.IsCommonSubDirectory())
                 continue;
 
             entriesAllocated++;
@@ -63,10 +63,13 @@ public static class EternalFileSystemAccessorHelper
             bytesAllocatedTotal += GetTakenClusters(entry.Size) * EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
         }
 
-        return new(bytesAllocatedUsed, bytesAllocatedTotal, entriesAllocated);
+        return new(bytesAllocatedTotal, bytesAllocatedUsed, entriesAllocated);
 
         static int GetTakenClusters(int entrySize)
         {
+            if (entrySize == 0)
+                return 1; // one cluster is taken already
+
             int clustersTaken = entrySize / EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
 
             if (entrySize % EternalFileSystemMounter.CLUSTER_SIZE_BYTES != 0)

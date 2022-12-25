@@ -9,7 +9,7 @@ namespace EternalFS.Library.Filesystem.Accessors;
 /// </summary>
 public interface IEternalFileSystemAccessor
 {
-    event EventHandler<EntryLocatedEventArgs>? EntryLocated; 
+    event EventHandler<EntryLocatedEventArgs>? EntryLocated;
 
     void Initialize(EternalFileSystem fileSystem);
 

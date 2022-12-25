@@ -4,13 +4,14 @@ using System.Text;
 using EternalFS.Commands;
 using EternalFS.Commands.Terminal;
 
+Console.InputEncoding = Encoding.UTF8;
 Console.OutputEncoding = Encoding.UTF8;
 
 TerminalRunner runner = new();
 
 runner.OnStart += (ref CommandExecutionContext context) =>
 {
-    RunCommand(@"mkfs -n=""TestFS"" -s=1000000", ref context);
+    RunCommand(@"mkfs -n=""TestFS"" -s=2000", ref context);
 };
 
 runner.Run();
