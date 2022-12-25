@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using EternalFS.Commands;
 using EternalFS.Commands.Diagnostics;
 using EternalFS.Commands.Miscellaneous;
+using EternalFS.Commands.Utils;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
@@ -25,89 +27,103 @@ using EternalFS.Library.Utils;
 /// </remarks>
 public static partial class CommandManager
 {
-	[ByteSpan("--help")]
-	private static partial ReadOnlySpan<byte> Help();
+    [ByteSpan("--help")]
+    private static partial ReadOnlySpan<byte> Help();
 
-	[ByteSpan(" > ")]
-	private static partial ReadOnlySpan<byte> WriteDelimiter();
+    [ByteSpan(">")]
+    private static partial ReadOnlySpan<byte> WriteDelimiter();
 
-	[ByteSpan("-mt")]
+    [ByteSpan("-mt")]
     private static partial ReadOnlySpan<byte> MeasureTime();
 
-	static partial void PreprocessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
-	{
-		context.ValueSpan = context.ValueSpan.SplitIndex(WriteDelimiter());
+    static partial void PreprocessCommand(ref CommandExecutionContext context, ref CommandExecutionResult? result)
+    {
+        if (context.FileSystem is null &&
+            CommandInfos.TryGetValue(context.Reader.ReadCommandName().GetString(), out var info) &&
+            info.NeedsFileSystem)
+            throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
-		int spaceIndex = input.IndexOf(ByteSpanHelper.Space());
-		ReadOnlySpan<byte> commandSpan = input[(spaceIndex + 1)..];
+        HandleHelpArgument(ref context, ref result);
+        HandleMeasureTime(ref context);
 
-		if (context.FileSystem is null &&
-			CommandInfos.TryGetValue(commandSpan.GetString(), out var info) &&
-			info.NeedsFileSystem)
-			throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
-
-		HandleHelpArgument(ref context, input, ref result);
-		HandleMeasureTime(ref context, input);
-
-		static void HandleHelpArgument(ref CommandExecutionContext context, in ReadOnlySpan<byte> input, ref CommandExecutionResult? result)
-		{
-			if (!context.ValueSpan.Contains(Help()))
-				return;
-
-			context.ValueSpan = input.SplitIndex(Help());
-			result = ManCommand.Instance.Execute(ref context);
-		}
-
-        static void HandleMeasureTime(ref CommandExecutionContext context, in ReadOnlySpan<byte> input)
+        static void HandleHelpArgument(ref CommandExecutionContext context, ref CommandExecutionResult? result)
         {
-            if (input.Contains(MeasureTime()))
+            if (!context.Reader.TryReadNamedArgument(Help(), out _))
+                return;
+
+            ReadOnlySpan<byte> commandName = context.Reader.ReadCommandName();
+
+            string manCommandName = CommandHelper.GetInfo<ManCommand>().Name;
+
+            byte[] manCommand = ArrayPool<byte>.Shared.Rent(
+                commandName.Length +
+                ByteSpanHelper.Space().Length +
+                manCommandName.Length);
+
+            Encoding.UTF8.GetBytes(manCommandName).AsSpan().CopyTo(manCommand);
+            ByteSpanHelper.Space().CopyTo(manCommand.AsSpan()[manCommandName.Length..]);
+            commandName.CopyTo(manCommand.AsSpan()[(manCommandName.Length + ByteSpanHelper.Space().Length)..]);
+
+            MemoryStream stream = new(manCommand);
+
+            result = ExecuteCommand(stream, ref context);
+
+            ArrayPool<byte>.Shared.Return(manCommand);
+        }
+
+        static void HandleMeasureTime(ref CommandExecutionContext context)
+        {
+            if (context.Reader.TryReadNamedArgument(MeasureTime(), out _))
             {
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
-				context.ServiceLocator.Add(stopwatch);
+                context.ServiceLocator.Add(stopwatch);
             }
         }
-	}
+    }
 
-	static partial void PostProcessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult result)
-	{
-		HandleFileDelimiter(ref context, input);
-		HandleMeasureTime(ref context);
+    static partial void PostProcessCommand(ref CommandExecutionContext context, ref CommandExecutionResult result)
+    {
+        HandleFileDelimiter(ref context);
+        HandleMeasureTime(ref context);
 
-		static void HandleFileDelimiter(ref CommandExecutionContext context, in ReadOnlySpan<byte> input)
-		{
-			ReadOnlySpan<byte> filename = input.SplitIndex(WriteDelimiter(), 1).SplitIndex(ByteSpanHelper.Space());
+        if (!context.Reader.IsFullyRead)
+            context.Writer.Append("\nWARNING: there were unrecognized parts in the command.");
 
-			if (filename == ReadOnlySpan<byte>.Empty)
-				return;
+        void HandleFileDelimiter(ref CommandExecutionContext context)
+        {
+            if (!context.Reader.TryReadNamedArgument(WriteDelimiter(), out var writeArgument))
+                return;
 
-			if (context.FileSystem is null)
-				throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
+            ReadOnlySpan<byte> filename = writeArgument.Value;
 
-			try
-			{
-				context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
-			}
-			catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
-			{
-				context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
-			}
+            if (context.FileSystem is null)
+                throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
+
+            try
+            {
+                context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
+            }
+            catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
+            {
+                context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
+            }
 
             byte[] bytes = Encoding.UTF8.GetBytes(context.Writer.ToString());
             MemoryStream ms = new(bytes);
 
             context.Accessor.WriteFile(new(context.CurrentDirectory.FatEntryReference, filename), ms);
 
-			context.Writer.Clear();
-		}
+            context.Writer.Clear();
+        }
 
         static void HandleMeasureTime(ref CommandExecutionContext context)
         {
             if (context.ServiceLocator.TryGet<Stopwatch>(out var stopwatch))
             {
-				stopwatch.Stop();
+                stopwatch.Stop();
                 context.Writer.Append($"\nElapsed time (ticks): {stopwatch.ElapsedTicks}");
             }
         }
-	}
+    }
 }

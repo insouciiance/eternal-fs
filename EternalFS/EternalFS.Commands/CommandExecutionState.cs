@@ -16,6 +16,12 @@ public enum CommandExecutionState
     [Map(@"Unable to process ""{0}"": command not found.")]
     CommandNotFound,
 
+    [Map(@"Unable to process ""{0}"": insufficient arguments.")]
+    InsufficientArguments,
+
+    [Map(@"Unable to process ""{0}"": not all ({1}) required arguments were provided.")]
+    MissingPositionalArguments,
+
 #if DEBUG
     [Map("{0}\n{1}")]
 #else

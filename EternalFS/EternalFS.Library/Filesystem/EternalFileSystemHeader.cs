@@ -37,7 +37,7 @@ public readonly struct EternalFileSystemHeader
         CreatedAt = createdAt;
 
         byte[] nameBuffer = new byte[16];
-        Encoding.ASCII.GetBytes(name, 0, name.Length, nameBuffer, 0);
+        Encoding.UTF8.GetBytes(name, 0, name.Length, nameBuffer, 0);
         Name = nameBuffer;
     }
 }

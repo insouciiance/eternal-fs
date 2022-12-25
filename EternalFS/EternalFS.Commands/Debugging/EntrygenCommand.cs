@@ -28,11 +28,11 @@ public partial class EntrygenCommand
         int depth = DEFAULT_DEPTH;
         int entriesCount = DEFAULT_ENTRIES_COUNT;
 
-        if (ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Depth(), out var depthSpan))
-            depth = int.Parse(depthSpan.GetString());
+        if (context.Reader.TryReadNamedArgument(Depth(), out var depthArg) && depthArg.HasValue)
+            depth = int.Parse(depthArg.Value.GetString());
 
-        if (ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, EntriesCount(), out var entriesSpan))
-            entriesCount = int.Parse(entriesSpan.GetString());
+        if (context.Reader.TryReadNamedArgument(EntriesCount(), out var entriesArg) && entriesArg.HasValue)
+            entriesCount = int.Parse(entriesArg.Value.GetString());
 
         FillTree(ref context);
         RunCommand("cd /", ref context);
@@ -46,7 +46,7 @@ public partial class EntrygenCommand
             void FillTreeInternal(ref CommandExecutionContext context, int current)
             {
                 for (int i = 0; i < entriesCount; i++)
-                    RunCommand($"echo file n. {i} > file_{i}.txt", ref context);
+                    RunCommand(@$"echo ""file n. {i}"" >=file_{i}.txt", ref context);
 
                 if (current < depth)
                 {

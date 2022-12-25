@@ -1,4 +1,5 @@
 ﻿using System;
+using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Filesystem;
@@ -9,10 +10,11 @@ public partial class TouchCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var filename))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(TouchCommand));
 
-        context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, fileName), false);
-        context.Writer.Append($"Created a file {fileName.GetString()}");
+        context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
+        context.Writer.Append($"Created a file {filename.GetString()}");
 
         return CommandExecutionResult.Default;
     }

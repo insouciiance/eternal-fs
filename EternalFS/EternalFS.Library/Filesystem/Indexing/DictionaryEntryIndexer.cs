@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using EternalFS.Library.Collections;
-using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Utils;

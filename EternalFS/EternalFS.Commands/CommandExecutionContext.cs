@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Utils;
@@ -14,9 +13,9 @@ namespace EternalFS.Commands;
 /// </remarks>
 public ref struct CommandExecutionContext
 {
-	public EternalFileSystem FileSystem { get; internal set; } = null!;
-
-	public ReadOnlySpan<byte> ValueSpan { get; internal set; } = ReadOnlySpan<byte>.Empty;
+    public Utf8CommandReader Reader;
+	
+    public EternalFileSystem FileSystem { get; internal set; } = null!;
 
 	public AccessorPipelineElement Accessor { get; internal set; } = null!;
 
@@ -35,6 +34,12 @@ public ref struct CommandExecutionContext
 			FileSystem = context.FileSystem,
 			CurrentDirectory = context.CurrentDirectory,
 			Accessor = context.Accessor
-		};
+        };
 	}
+
+    public void Dispose()
+    {
+		Reader.Dispose();
+        Writer.Clear();
+    }
 }

@@ -10,7 +10,8 @@ public partial class ManCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> commandSpan = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var commandSpan))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(ManCommand));
 
         if (commandSpan == ReadOnlySpan<byte>.Empty)
         {

@@ -78,4 +78,7 @@ public static partial class ByteSpanHelper
 
     [ByteSpan("|")]
     public static partial ReadOnlySpan<byte> Pipe();
+
+    [ByteSpan("-")]
+    public static partial ReadOnlySpan<byte> Dash();
 }

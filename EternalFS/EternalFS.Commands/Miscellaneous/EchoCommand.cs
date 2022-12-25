@@ -8,7 +8,10 @@ public partial class EchoCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        context.Writer.Append(context.ValueSpan.GetString());
+        if (!context.Reader.TryReadPositionalArgument(out var value))
+            value = System.ReadOnlySpan<byte>.Empty;
+
+        context.Writer.Append(value.GetString());
         return CommandExecutionResult.Default;
     }
 }

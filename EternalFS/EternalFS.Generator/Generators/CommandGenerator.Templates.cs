@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -80,7 +81,8 @@ CommandDocumentation.CreateBuilder()
             typeof(Encoding).Namespace,
             typeof(List<>).Namespace,
             typeof(CommandAttribute).Namespace,
-            typeof(Stream).Namespace
+            typeof(Stream).Namespace,
+            typeof(ArrayPool<>).Namespace
         }.OrderUsings();
 
         return $@"
@@ -95,33 +97,30 @@ public static partial class {commandManagerTypeName}
 {string.Join("\n\n", commands
     .Select(c => $@"    private static ReadOnlySpan<byte> {GetCommandSpanName(c)} => ""{GetCommandName(c)}""u8;"))}
 
-    static partial void PreprocessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult? result);
+    static partial void PreprocessCommand(ref CommandExecutionContext context, ref CommandExecutionResult? result);
     
-    static partial void PostProcessCommand(ref CommandExecutionContext context, scoped in ReadOnlySpan<byte> input, ref CommandExecutionResult result);
+    static partial void PostProcessCommand(ref CommandExecutionContext context, ref CommandExecutionResult result);
 
     public static CommandExecutionResult ExecuteCommand(Stream source, ref CommandExecutionContext context)
     {{
-        Span<byte> buffer = new byte[MAX_COMMAND_LENGTH];
-    
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(MAX_COMMAND_LENGTH);
+        buffer.AsSpan().Fill(0);
+
         source.Read(buffer);
 
-        int spaceIndex = buffer.IndexOf(ByteSpanHelper.Space());
-
-        if (spaceIndex == -1)
-            spaceIndex = buffer.IndexOf(ByteSpanHelper.Null());
-
         // just skip if there is no input
-        if (buffer.TrimEnd(ByteSpanHelper.Null()).SequenceEqual(ReadOnlySpan<byte>.Empty))
+        if (buffer.AsSpan().TrimEnd(ByteSpanHelper.Null()).SequenceEqual(ReadOnlySpan<byte>.Empty))
             return new();
+
+        context.Reader = new Utf8CommandReader(buffer);
         
-        ReadOnlySpan<byte> commandSpan = buffer[..spaceIndex];
-        context.ValueSpan = buffer[(spaceIndex + 1)..];
+        ReadOnlySpan<byte> commandSpan = context.Reader.ReadCommandName();
 
         CommandExecutionResult? result = null;
 
         try
         {{
-	        PreprocessCommand(ref context, buffer, ref result);
+	        PreprocessCommand(ref context, ref result);
 
             result = commandSpan switch
             {{
@@ -130,7 +129,7 @@ public static partial class {commandManagerTypeName}
                 _ => throw new CommandExecutionException(CommandExecutionState.CommandNotFound, Encoding.UTF8.GetString(commandSpan))
             }};
 	
-			PostProcessCommand(ref context, buffer, ref result);
+			PostProcessCommand(ref context, ref result);
         }}
         catch (Exception e)
         {{
@@ -142,6 +141,8 @@ public static partial class {commandManagerTypeName}
 #endif
             result = CommandExecutionResult.Default;
         }}
+
+        ArrayPool<byte>.Shared.Return(buffer);
 
         return result;
     }}
@@ -176,6 +177,7 @@ public static partial class {commandManagerTypeName}
         IList<string> usings = new HashSet<string>(CollectUsings(commands))
         {
             typeof(CommandAttribute).Namespace,
+            typeof(CommandAttribute).Namespace + ".Utils",
             typeof(List<>).Namespace
         }.OrderUsings();
 
@@ -190,12 +192,8 @@ public static partial class {commandManagerTypeName}
     {{
 {string.Join(",\n", commands.Select(c => $@"        {{ ""{GetCommandName(c)}"", {GetCommandInfo(c)} }}"))}
     }};
-
-    private static CommandInfo GetInfo<T>()
-        where T : ICommand
-        => T.Info;
 }}";
-        static string GetCommandInfo(INamedTypeSymbol command) => $@"GetInfo<{command.Name}>()";
+        static string GetCommandInfo(INamedTypeSymbol command) => $@"CommandHelper.GetInfo<{command.Name}>()";
     }
 
     private static string GetCommandName(INamedTypeSymbol command)

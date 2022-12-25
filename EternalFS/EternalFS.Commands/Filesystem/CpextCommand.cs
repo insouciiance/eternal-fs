@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
@@ -14,14 +16,15 @@ public partial class CpextCommand
     private const string REVERSE_ARG = "-r";
 
     [ByteSpan(REVERSE_ARG)]
-    private partial ReadOnlySpan<byte> Reverse();
+    private static partial ReadOnlySpan<byte> Reverse();
 
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> from = context.ValueSpan.SplitIndex();
-        ReadOnlySpan<byte> to = context.ValueSpan.SplitIndex(1);
+        if (!context.Reader.TryReadPositionalArgument(out var from) ||
+            !context.Reader.TryReadPositionalArgument(out var to))
+            throw new CommandExecutionException(CommandExecutionState.MissingPositionalArguments, nameof(CpextCommand), 2);
 
-        if (context.ValueSpan.Contains(Reverse()))
+        if (context.Reader.TryReadNamedArgument(Reverse(), out _))
         {
             CopyReverse(ref context, from, to);
             return CommandExecutionResult.Default;
@@ -33,7 +36,7 @@ public partial class CpextCommand
         return CommandExecutionResult.Default;
     }
 
-    private static void CopyReverse(ref CommandExecutionContext context, in ReadOnlySpan<byte> from, in ReadOnlySpan<byte> to)
+    private static void CopyReverse(ref CommandExecutionContext context, scoped ReadOnlySpan<byte> from, scoped ReadOnlySpan<byte> to)
     {
         var fromEntry = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, from));
         using EternalFileSystemFileStream source = new(context.FileSystem, fromEntry.FatEntryReference);

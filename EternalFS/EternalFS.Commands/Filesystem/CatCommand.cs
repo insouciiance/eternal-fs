@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
@@ -12,7 +13,8 @@ public partial class CatCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> filename = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var filename))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(CatCommand));
 
         var fileEntry = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
         

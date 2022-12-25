@@ -31,19 +31,19 @@ public partial class MkfsCommand
 
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Name(), out var nameSpan))
+        if (!context.Reader.TryReadNamedArgument(Name(), out var nameArg) || !nameArg.HasValue)
             throw new CommandExecutionException(CommandExecutionState.Other);
 
-        if (!ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, Size(), out var sizeSpan))
+        if (!context.Reader.TryReadNamedArgument(Size(), out var sizeArg) || !sizeArg.HasValue)
             throw new CommandExecutionException(CommandExecutionState.Other);
 
-        string name = nameSpan.GetString();
-        int size = int.Parse(sizeSpan.GetString());
+        string name = nameArg.Value.GetString();
+        int size = int.Parse(sizeArg.Value.GetString());
 
         IEternalFileSystemInitializer<EternalFileSystem> initializer;
 
-        if (ArgumentsHelper.TryGetArgumentValue(context.ValueSpan, FileName(), out var fileName))
-            initializer = new DiskEternalFileSystemInitializer(name, size, fileName.GetString());
+        if (context.Reader.TryReadNamedArgument(FileName(), out var fileArg) && fileArg.HasValue)
+            initializer = new DiskEternalFileSystemInitializer(name, size, fileArg.Value.GetString());
         else
             initializer = new VirtualEternalFileSystemInitializer(name, size);
 

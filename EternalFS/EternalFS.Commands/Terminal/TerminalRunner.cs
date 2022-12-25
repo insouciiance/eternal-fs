@@ -17,9 +17,7 @@ public class TerminalRunner
     {
         CommandExecutionResult commandResult;
         
-        var accessor = SetupAccessors();
-
-        CommandExecutionContext context = new() { Accessor = accessor };
+        CommandExecutionContext context = new() { Accessor = SetupAccessors() };
 
         OnStart?.Invoke(ref context);
 

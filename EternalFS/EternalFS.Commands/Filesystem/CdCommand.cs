@@ -14,7 +14,8 @@ public partial class CdCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> directoryPath = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var directoryPath))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(CdCommand));
 
         EternalFileSystemDirectory currentDirectory = context.CurrentDirectory;
 

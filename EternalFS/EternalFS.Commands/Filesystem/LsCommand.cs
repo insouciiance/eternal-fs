@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
 
@@ -25,17 +24,19 @@ public partial class LsCommand
 
         var subEntries = context.Accessor.EnumerateEntries(context.CurrentDirectory.FatEntryReference, SearchOption.TopDirectoryOnly);
 
-        DumpInfo(ref context, subEntries);
+        bool longList = context.Reader.TryReadNamedArgument(LongList(), out _);
+
+        DumpInfo(ref context, subEntries, longList);
 
         return CommandExecutionResult.Default;
     }
 
-    private static void DumpInfo(ref CommandExecutionContext context, IEnumerable<EternalFileSystemEntry> subEntries)
+    private static void DumpInfo(ref CommandExecutionContext context, IEnumerable<EternalFileSystemEntry> subEntries, bool longList)
     {
         subEntries = subEntries.ToArray();
 
         DumpDirectories(ref context);
-        DumpFiles(ref context);
+        DumpFiles(ref context, longList);
 
         void DumpDirectories(ref CommandExecutionContext context)
         {
@@ -52,7 +53,7 @@ public partial class LsCommand
             }
         }
 
-        void DumpFiles(ref CommandExecutionContext context)
+        void DumpFiles(ref CommandExecutionContext context, bool longList)
         {
             foreach (var subEntry in subEntries)
             {
@@ -65,7 +66,7 @@ public partial class LsCommand
                 string fileName = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
                 context.Writer.Append(fileName);
                 
-                if (context.ValueSpan.Contains(LongList()))
+                if (longList)
                     context.Writer.Append($" [{subEntry.Size}B]");
             }
         }

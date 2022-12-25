@@ -1,4 +1,5 @@
 ﻿using System;
+using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Filesystem;
@@ -9,8 +10,10 @@ public partial class RmCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> fileName = context.ValueSpan.SplitIndex();
-        context.Accessor.DeleteSubEntry(new(context.CurrentDirectory.FatEntryReference, fileName));
+        if (!context.Reader.TryReadPositionalArgument(out var filename))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(RmCommand));
+
+        context.Accessor.DeleteSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
 
         return CommandExecutionResult.Default;
     }

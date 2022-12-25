@@ -1,4 +1,4 @@
-﻿using System;
+﻿using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 
@@ -10,7 +10,9 @@ public partial class OpenfsCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> fileSpan = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var fileSpan))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(OpenfsCommand));
+
         string fileName = fileSpan.GetString();
 
         context.CurrentDirectory.Clear();

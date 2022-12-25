@@ -1,4 +1,4 @@
-﻿using System;
+﻿using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Filesystem;
@@ -9,7 +9,8 @@ public partial class MkdirCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> directoryName = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var directoryName))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(MkdirCommand));
 
         context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, directoryName), true);
 

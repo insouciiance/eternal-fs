@@ -28,7 +28,7 @@ public partial class IndexfsCommand
         context.Writer.Append("Created an index over the execution context");
 
 #if DEBUG
-        if (context.ValueSpan.Contains(ShowIndex()))
+        if (context.Reader.TryReadNamedArgument(ShowIndex(), out _))
             indexer.WriteInternalIndex(context.Writer);
 #endif
 

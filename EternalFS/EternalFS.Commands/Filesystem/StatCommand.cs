@@ -1,4 +1,5 @@
 ﻿using System;
+using EternalFS.Commands.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 
@@ -10,7 +11,8 @@ public partial class StatCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        ReadOnlySpan<byte> subEntryName = context.ValueSpan.SplitIndex();
+        if (!context.Reader.TryReadPositionalArgument(out var subEntryName))
+            throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(StatCommand));
 
         var entry = context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, subEntryName));
 
