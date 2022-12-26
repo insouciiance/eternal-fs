@@ -1,4 +1,5 @@
 ﻿using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Filesystem;
@@ -15,7 +16,7 @@ public partial class CpCommand
 
         context.Accessor.CopySubEntry(new(context.CurrentDirectory.FatEntryReference, from), new(context.CurrentDirectory.FatEntryReference, to));
         
-        context.Writer.Append($"Copied {from.GetString()} to {to.GetString()}");
+        context.Writer.Info($"Copied {from.GetString()} to {to.GetString()}");
 
         return CommandExecutionResult.Default;
     }

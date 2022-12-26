@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using EternalFS.Commands.IO;
 using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Filesystem.Validation;
@@ -17,7 +18,11 @@ public class TerminalRunner
     {
         CommandExecutionResult commandResult;
         
-        CommandExecutionContext context = new() { Accessor = SetupAccessors() };
+        CommandExecutionContext context = new()
+        {
+            Accessor = SetupAccessors(),
+            Writer = new ConsoleOutputWriter()
+        };
 
         OnStart?.Invoke(ref context);
 
@@ -31,11 +36,6 @@ public class TerminalRunner
             string commandLine = Console.ReadLine()!;
             using MemoryStream inputStream = new(Encoding.UTF8.GetBytes(commandLine));
             commandResult = CommandManager.ExecuteCommand(inputStream, ref context);
-
-            if (context.Writer.Length > 0)
-                Console.WriteLine(context.Writer);
-            
-            context.Writer.Clear();
         } while (!commandResult.ShouldExit);
     }
 

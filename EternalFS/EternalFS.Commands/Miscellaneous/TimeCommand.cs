@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using EternalFS.Commands.Extensions;
 
 namespace EternalFS.Commands.Miscellaneous;
 
@@ -9,7 +10,7 @@ public partial class TimeCommand
 {
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
-        context.Writer.Append(DateTime.Now.ToString(CultureInfo.InvariantCulture));
+        context.Writer.Info(DateTime.Now.ToString(CultureInfo.InvariantCulture));
         return CommandExecutionResult.Default;
     }
 }

@@ -74,6 +74,7 @@ CommandDocumentation.CreateBuilder()
         IList<string> usings = new HashSet<string>(CollectUsings(commands))
         {
             "EternalFS.Commands.Diagnostics",
+            "EternalFS.Commands.Extensions",
             "EternalFS.Library.Extensions",
             "EternalFS.Library.Filesystem",
             "EternalFS.Library.Utils",
@@ -128,21 +129,24 @@ public static partial class {commandManagerTypeName}
 {string.Join("\n", commands.Select(SwitchCommand))}
                 _ => throw new CommandExecutionException(CommandExecutionState.CommandNotFound, Encoding.UTF8.GetString(commandSpan))
             }};
-	
-			PostProcessCommand(ref context, ref result);
         }}
         catch (Exception e)
         {{
-			context.Writer.Clear();
-            context.Writer.Append(e.Message);
+            string message = e.Message!;
+
 #if DEBUG
-            context.Writer.AppendLine();
-            context.Writer.Append(e.StackTrace);
+            message += Environment.NewLine + e.StackTrace;
 #endif
+
+            context.Writer.Error(message);
+
             result = CommandExecutionResult.Default;
         }}
-
-        ArrayPool<byte>.Shared.Return(buffer);
+        finally
+        {{
+		    PostProcessCommand(ref context, ref result!);
+            ArrayPool<byte>.Shared.Return(buffer);
+        }}
 
         return result;
     }}

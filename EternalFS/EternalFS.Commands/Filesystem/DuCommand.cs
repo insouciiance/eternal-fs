@@ -1,4 +1,5 @@
-﻿using EternalFS.Library.Filesystem;
+﻿using EternalFS.Commands.Extensions;
+using EternalFS.Library.Filesystem;
 using EternalFS.Library.Filesystem.Accessors;
 
 namespace EternalFS.Commands.Filesystem;
@@ -9,10 +10,10 @@ public partial class DuCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         DiskUsageInfo usageInfo = EternalFileSystemAccessorHelper.GetDiskUsageInfo(context.Accessor);
-        context.Writer.AppendLine("Disk usage info:");
-        context.Writer.AppendLine($"Bytes occupied (total): {usageInfo.BytesAllocatedTotal} / {context.FileSystem.Size}");
-        context.Writer.AppendLine($"Bytes occupied (actual): {usageInfo.BytesAllocatedActual} / {context.FileSystem.Size}");
-        context.Writer.Append($"Entries allocated: {usageInfo.EntriesAllocated}");
+        context.Writer.Info("Disk usage info:");
+        context.Writer.Info($"Bytes occupied (total): {usageInfo.BytesAllocatedTotal} / {context.FileSystem.Size}");
+        context.Writer.Info($"Bytes occupied (actual): {usageInfo.BytesAllocatedActual} / {context.FileSystem.Size}");
+        context.Writer.Info($"Entries allocated: {usageInfo.EntriesAllocated}");
         return CommandExecutionResult.Default;
     }
 }

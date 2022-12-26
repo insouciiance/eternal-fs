@@ -9,7 +9,7 @@ public ref struct Utf8CommandReader
     public ReadOnlySpan<byte> OriginalSequence { get; }
 
     public bool IsFullyRead => _sequence.AsSpan().IndexOf(false) == -1;
-    
+
     private readonly bool[] _sequence;
 
     private int _positionalIndex;
@@ -68,7 +68,7 @@ public ref struct Utf8CommandReader
             return false;
         }
 
-        return TryReadPositionalArgumentInternal(OriginalSequence, initial + 1, out value);
+        return TryReadPositionalArgumentInternal(OriginalSequence, initial + 1, true, out value);
     }
 
     private void FillNulls()
@@ -116,7 +116,7 @@ public ref struct Utf8CommandReader
 
                 _sequence.AsSpan()[start..(end + 1)].Fill(true);
 
-                bool read = TryReadPositionalArgumentInternal(OriginalSequence, end + 1, out var value);
+                bool read = TryReadPositionalArgumentInternal(OriginalSequence, end + 1, false, out var value);
                 argument = read ? new(name, value) : default;
                 return read;
             }
@@ -128,7 +128,7 @@ public ref struct Utf8CommandReader
                     argument = default;
                     return false;
                 }
-                
+
                 ReadOnlySpan<byte> quotesSpan = ReadQuotesInternal(OriginalSequence, end);
                 _sequence.AsSpan()[initial..(end + quotesSpan.Length)].Fill(true);
 
@@ -143,7 +143,7 @@ public ref struct Utf8CommandReader
         return false;
     }
 
-    private bool TryReadPositionalArgumentInternal(ReadOnlySpan<byte> sequence, int initial, out ReadOnlySpan<byte> value)
+    private bool TryReadPositionalArgumentInternal(ReadOnlySpan<byte> sequence, int initial, bool updatePosition, out ReadOnlySpan<byte> value)
     {
         int end = initial;
 
@@ -151,19 +151,22 @@ public ref struct Utf8CommandReader
         {
             byte current = sequence[end];
 
-            if (current is (byte)'"')
+            if (current is (byte)' ' or (byte)'-' or 0 or (byte)'"')
             {
-                value = ReadQuotesInternal(sequence, end);
-                _positionalIndex = end + 1 + value.Length + 1;
-                _sequence.AsSpan()[initial.._positionalIndex].Fill(true);
-                return true;
-            }
+                if (current is (byte)'"')
+                {
+                    value = ReadQuotesInternal(sequence, end);
+                    end = end + 1 + value.Length + 1;
+                }
+                else
+                {
+                    value = sequence[initial..end];
+                }
 
-            if (current is (byte)' ' or (byte)'-' or 0)
-            {
-                value = sequence[initial..end];
-                _positionalIndex = end;
-                _sequence.AsSpan()[initial.._positionalIndex].Fill(true);
+                if (updatePosition)
+                    _positionalIndex = end;
+
+                _sequence.AsSpan()[initial..end].Fill(true);
                 return true;
             }
 

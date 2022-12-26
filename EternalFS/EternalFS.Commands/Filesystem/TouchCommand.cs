@@ -1,5 +1,5 @@
-﻿using System;
-using EternalFS.Commands.Diagnostics;
+﻿using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Filesystem;
@@ -14,7 +14,7 @@ public partial class TouchCommand
             throw new CommandExecutionException(CommandExecutionState.InsufficientArguments, nameof(TouchCommand));
 
         context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
-        context.Writer.Append($"Created a file {filename.GetString()}");
+        context.Writer.Info($"Created a file {filename.GetString()}");
 
         return CommandExecutionResult.Default;
     }

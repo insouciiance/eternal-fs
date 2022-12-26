@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Filesystem;
 
 namespace EternalFS.Commands.Filesystem;
@@ -10,7 +11,7 @@ public partial class DirinfoCommand
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         using Stream stream = new EternalFileSystemFileStream(context.FileSystem, context.CurrentDirectory.FatEntryReference);
-        context.Writer.Append($"Subentries count: {stream.ReadByte()}");
+        context.Writer.Info($"Subentries count: {stream.ReadByte()}");
 
         return CommandExecutionResult.Default;
     }

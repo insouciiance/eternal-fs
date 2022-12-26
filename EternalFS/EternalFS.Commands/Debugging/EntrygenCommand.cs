@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using EternalFS.Commands.Utils;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Utils;
 
@@ -35,7 +36,7 @@ public partial class EntrygenCommand
             entriesCount = int.Parse(entriesArg.Value.GetString());
 
         FillTree(ref context);
-        RunCommand("cd /", ref context);
+        CommandHelper.RunCommand("cd /", ref context);
 
         return CommandExecutionResult.Default;
 
@@ -46,27 +47,15 @@ public partial class EntrygenCommand
             void FillTreeInternal(ref CommandExecutionContext context, int current)
             {
                 for (int i = 0; i < entriesCount; i++)
-                    RunCommand(@$"echo ""file n. {i}"" >=file_{i}.txt", ref context);
+                    CommandHelper.RunCommand(@$"echo ""file n. {i}"" >=file_{i}.txt", ref context);
 
                 if (current < depth)
                 {
-                    RunCommand("mkdir subdir", ref context);
-                    RunCommand("cd subdir", ref context);
+                    CommandHelper.RunCommand("mkdir subdir", ref context);
+                    CommandHelper.RunCommand("cd subdir", ref context);
                     FillTreeInternal(ref context, current + 1);
                 }
             }
-        }
-    }
-
-    private static void RunCommand(string command, ref CommandExecutionContext context)
-    {
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(command));
-        CommandManager.ExecuteCommand(stream, ref context);
-
-        if (context.Writer.Length > 0)
-        {
-            Console.WriteLine(context.Writer);
-            context.Writer.Clear();
         }
     }
 }

@@ -65,22 +65,6 @@ public class DictionaryEntryIndexer : IEntryIndexer
         _subEntriesCache[info.FatEntry][index] = subEntry;
     }
 
-    [Conditional("DEBUG")]
-    public void WriteInternalIndex(StringBuilder builder)
-    {
-        builder.AppendLine("\nInternal index map:");
-
-        var index = GetInternalIndex();
-
-        foreach (var (key, value) in index)
-            builder.AppendLine($$"""{ {{key}}, {{value}} }""");
-
-        Dictionary<string, string> GetInternalIndex()
-        {
-            return _entriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
-        }
-    }
-
     public bool TryEnumerateEntries(EternalFileSystemFatEntry directory, SearchOption searchOption, [MaybeNullWhen(false)] out IEnumerable<EternalFileSystemEntry> entries)
     {
         if (_subEntriesCache.TryGetValue(directory, out var list))
@@ -93,13 +77,20 @@ public class DictionaryEntryIndexer : IEntryIndexer
         return false;
     }
 
+#if DEBUG
+    public Dictionary<string, string> GetInternalIndex()
+    {
+        return _entriesCache.ToDictionary(kvp => kvp.Key, kvp => ((ReadOnlySpan<byte>)kvp.Value.SubEntryName).GetString());
+    }
+#endif
+
     private void IndexFileSystem()
     {
         List<string> directoryStack = new()
         {
             EternalFileSystemMounter.ROOT_DIRECTORY_NAME
         };
-        
+
         IndexDirectory(EternalFileSystemMounter.RootDirectoryEntry);
 
         void IndexDirectory(EternalFileSystemFatEntry directoryEntry)
@@ -108,7 +99,7 @@ public class DictionaryEntryIndexer : IEntryIndexer
 
             int entriesCount = stream.MarshalReadStructure<int>();
 
-            for(int i = 0; i < entriesCount; i++)
+            for (int i = 0; i < entriesCount; i++)
             {
                 var entry = stream.MarshalReadStructure<EternalFileSystemEntry>();
 
@@ -119,15 +110,15 @@ public class DictionaryEntryIndexer : IEntryIndexer
                 _subEntriesCache.Add(directoryEntry, entry);
 
                 if (!entry.IsDirectory)
-	                continue;
+                    continue;
 
                 // skip parent directory and this directory, they have already been indexed.
                 if (subEntryName.SequenceEqual(ByteSpanHelper.ParentDirectory()) ||
                     subEntryName.SequenceEqual(ByteSpanHelper.Period()))
-	                continue;
-                    
+                    continue;
+
                 directoryStack.Add(subEntryName.GetString());
-                    
+
                 IndexDirectory(entry.FatEntryReference);
             }
 

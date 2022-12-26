@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using EternalFS.Commands.IO;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Utils;
@@ -19,7 +19,7 @@ public ref struct CommandExecutionContext
 
 	public AccessorPipelineElement Accessor { get; internal set; } = null!;
 
-	public StringBuilder Writer { get; init; } = new();
+    public IOutputWriter Writer { get; internal set; } = null!;
 
 	public EternalFileSystemDirectory CurrentDirectory { get; init; } = new();
 
@@ -33,13 +33,16 @@ public ref struct CommandExecutionContext
 		{
 			FileSystem = context.FileSystem,
 			CurrentDirectory = context.CurrentDirectory,
-			Accessor = context.Accessor
+			Accessor = context.Accessor,
+			Writer = context.Writer
         };
 	}
 
     public void Dispose()
     {
-		Reader.Dispose();
-        Writer.Clear();
+		if (Reader.OriginalSequence != default)
+            Reader.Dispose();
+		
+        Writer.Flush();
     }
 }

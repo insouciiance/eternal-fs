@@ -1,5 +1,6 @@
 ﻿using System;
 using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Miscellaneous;
@@ -15,7 +16,7 @@ public partial class ManCommand
 
         if (commandSpan == ReadOnlySpan<byte>.Empty)
         {
-            context.Writer.Append("Command name expected.");
+            context.Writer.Info("Command name expected.");
             throw new CommandExecutionException(CommandExecutionState.Other);
         }
 
@@ -23,14 +24,14 @@ public partial class ManCommand
 
         if (CommandManager.CommandInfos.TryGetValue(command, out var info) && info.Documentation is { } doc)
         {
-            context.Writer.Append($"Summary: {doc.Summary}");
+            context.Writer.Info($"Summary: {doc.Summary}");
 
             if (doc.Arguments is { Length: > 0 } args)
             {
-                context.Writer.Append("\nArguments:");
+                context.Writer.Info("\nArguments:");
 
                 foreach (var arg in args)
-                    context.Writer.Append($"\n{arg.Name}   {arg.Description} {(arg.Required ? "[Required]" : string.Empty)}");
+                    context.Writer.Info($"{arg.Name}   {arg.Description} {(arg.Required ? "[Required]" : string.Empty)}");
             }
 
             return CommandExecutionResult.Default;

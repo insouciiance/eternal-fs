@@ -1,6 +1,6 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Diagnostics;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
@@ -27,7 +27,7 @@ public partial class CatCommand
         stream.Read(content, 0, content.Length);
         string contentString = Encoding.UTF8.GetString(content);
 
-        context.Writer.Append(contentString);
+        context.Writer.Info(contentString);
 
         return CommandExecutionResult.Default;
     }

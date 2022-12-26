@@ -1,4 +1,6 @@
-﻿namespace EternalFS.Commands.Miscellaneous;
+﻿using EternalFS.Commands.Extensions;
+
+namespace EternalFS.Commands.Miscellaneous;
 
 [Command("help")]
 [CommandSummary("Outputs a list of available commands with their documentation.")]
@@ -11,11 +13,10 @@ public partial class HelpCommand
             if (info.Documentation is null)
                 continue;
 
-            context.Writer.AppendLine($"{command}: {info.Documentation.Summary}");
+            context.Writer.Info($"{command}: {info.Documentation.Summary}");
         }
 
-        context.Writer.AppendLine();
-        context.Writer.Append(@"Command ""man"" or flag ""--help"" may provide more info for individual commands.");
+        context.Writer.Info(@"Command ""man"" or flag ""--help"" may provide more info for individual commands.");
 
         return CommandExecutionResult.Default;
     }

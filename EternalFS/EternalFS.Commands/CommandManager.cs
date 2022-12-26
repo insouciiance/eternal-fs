@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using EternalFS.Commands;
 using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
+using EternalFS.Commands.IO;
 using EternalFS.Commands.Miscellaneous;
 using EternalFS.Commands.Utils;
 using EternalFS.Library.Diagnostics;
@@ -48,6 +50,7 @@ public static partial class CommandManager
 
         HandleHelpArgument(ref context, ref result);
         HandleMeasureTime(ref context);
+        HandleFileDelimiter(ref context);
 
         static void HandleHelpArgument(ref CommandExecutionContext context, ref CommandExecutionResult? result)
         {
@@ -83,15 +86,6 @@ public static partial class CommandManager
                 context.ServiceLocator.Add(stopwatch);
             }
         }
-    }
-
-    static partial void PostProcessCommand(ref CommandExecutionContext context, ref CommandExecutionResult result)
-    {
-        HandleFileDelimiter(ref context);
-        HandleMeasureTime(ref context);
-
-        if (!context.Reader.IsFullyRead)
-            context.Writer.Append("\nWARNING: there were unrecognized parts in the command.");
 
         static void HandleFileDelimiter(ref CommandExecutionContext context)
         {
@@ -99,6 +93,7 @@ public static partial class CommandManager
             {
                 ReadOnlySpan<byte> filename = writeArgument.Value;
                 RedirectToFile(ref context, filename, false);
+                return;
             }
 
             if (context.Reader.TryReadNamedArgument(AppendDelimiter(), out var appendArgument))
@@ -112,22 +107,34 @@ public static partial class CommandManager
                 if (context.FileSystem is null)
                     throw new CommandExecutionException(CommandExecutionState.MissingFileSystem);
 
+                SubEntryInfo info = new(context.CurrentDirectory.FatEntryReference, filename);
+
                 try
                 {
-                    context.Accessor.LocateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename));
+                    context.Accessor.LocateSubEntry(info);
                 }
                 catch (EternalFileSystemException e) when (e.State == EternalFileSystemState.CantLocateSubEntry)
                 {
-                    context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, filename), false);
+                    context.Accessor.CreateSubEntry(info, false);
                 }
 
-                byte[] bytes = Encoding.UTF8.GetBytes(context.Writer.ToString());
-                MemoryStream ms = new(bytes);
-
-                context.Accessor.WriteFile(new(context.CurrentDirectory.FatEntryReference, filename), ms, append);
-
-                context.Writer.Clear();
+                context.ServiceLocator.Add(context.Writer);
+                context.Writer = new FileEntryOutputWriter(info, context.Accessor, append);
             }
+        }
+    }
+
+    static partial void PostProcessCommand(ref CommandExecutionContext context, ref CommandExecutionResult result)
+    {
+        HandleMeasureTime(ref context);
+
+        if (!context.Reader.IsFullyRead)
+            context.Writer.Warning("There were unrecognized parts in the command.");
+
+        if (context.ServiceLocator.TryGet<IOutputWriter>(out var writer))
+        {
+            context.Writer.Flush();
+            context.Writer = writer;
         }
 
         static void HandleMeasureTime(ref CommandExecutionContext context)
@@ -135,7 +142,7 @@ public static partial class CommandManager
             if (context.ServiceLocator.TryGet<Stopwatch>(out var stopwatch))
             {
                 stopwatch.Stop();
-                context.Writer.Append($"\nElapsed time (ticks): {stopwatch.ElapsedTicks}");
+                context.Writer.Info($"\nElapsed time (ticks): {stopwatch.ElapsedTicks}");
             }
         }
     }

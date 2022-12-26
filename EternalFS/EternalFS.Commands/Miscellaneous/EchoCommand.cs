@@ -1,4 +1,5 @@
-﻿using EternalFS.Library.Extensions;
+﻿using EternalFS.Commands.Extensions;
+using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Miscellaneous;
 
@@ -11,7 +12,7 @@ public partial class EchoCommand
         if (!context.Reader.TryReadPositionalArgument(out var value))
             value = System.ReadOnlySpan<byte>.Empty;
 
-        context.Writer.Append(value.GetString());
+        context.Writer.Info(value.GetString());
         return CommandExecutionResult.Default;
     }
 }

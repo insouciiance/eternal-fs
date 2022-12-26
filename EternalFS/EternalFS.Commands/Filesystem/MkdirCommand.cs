@@ -1,4 +1,5 @@
 ﻿using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Extensions;
 
 namespace EternalFS.Commands.Filesystem;
@@ -14,7 +15,7 @@ public partial class MkdirCommand
 
         context.Accessor.CreateSubEntry(new(context.CurrentDirectory.FatEntryReference, directoryName), true);
 
-        context.Writer.Append($"Created a directory {directoryName.GetString()}");
+        context.Writer.Info($"Created a directory {directoryName.GetString()}");
 
         return CommandExecutionResult.Default;
     }

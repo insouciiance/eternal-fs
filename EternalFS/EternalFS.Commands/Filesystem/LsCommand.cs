@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Filesystem;
 using EternalFS.Library.Utils;
 
@@ -45,11 +46,8 @@ public partial class LsCommand
                 if (!subEntry.IsDirectory)
                     continue;
 
-                if (context.Writer.Length > 0)
-                    context.Writer.AppendLine();
-
                 string directoryName = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
-                context.Writer.Append($"{directoryName}/");
+                context.Writer.Info($"{directoryName}/");
             }
         }
 
@@ -60,14 +58,12 @@ public partial class LsCommand
                 if (subEntry.IsDirectory)
                     continue;
 
-                if (context.Writer.Length > 0)
-                    context.Writer.AppendLine();
-
-                string fileName = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
-                context.Writer.Append(fileName);
+                string info = Encoding.UTF8.GetString(subEntry.SubEntryName).TrimEnd('\0');
                 
                 if (longList)
-                    context.Writer.Append($" [{subEntry.Size}B]");
+                    info += $" [{subEntry.Size}B]";
+             
+                context.Writer.Info(info);
             }
         }
     }

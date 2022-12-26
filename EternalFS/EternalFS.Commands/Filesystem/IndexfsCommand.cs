@@ -1,10 +1,8 @@
-﻿using System;
+﻿using EternalFS.Commands.Extensions;
 using EternalFS.Library.Diagnostics;
-using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem.Accessors;
 using EternalFS.Library.Filesystem.Accessors.Pipeline;
 using EternalFS.Library.Filesystem.Indexing;
-using EternalFS.Library.Utils;
 
 namespace EternalFS.Commands.Filesystem;
 
@@ -12,11 +10,6 @@ namespace EternalFS.Commands.Filesystem;
 [CommandSummary("Creates an index over the filesystem to allow faster entry search.")]
 public partial class IndexfsCommand
 {
-#if DEBUG
-    [ByteSpan("-si")]
-    private static partial ReadOnlySpan<byte> ShowIndex();
-#endif
-
     public CommandExecutionResult Execute(ref CommandExecutionContext context)
     {
         DictionaryEntryIndexer indexer = new();
@@ -25,12 +18,7 @@ public partial class IndexfsCommand
         InsertIndexer(context.Accessor);
         context.Accessor.Initialize(context.FileSystem);
 
-        context.Writer.Append("Created an index over the execution context");
-
-#if DEBUG
-        if (context.Reader.TryReadNamedArgument(ShowIndex(), out _))
-            indexer.WriteInternalIndex(context.Writer);
-#endif
+        context.Writer.Info("Created an index over the execution context");
 
         return CommandExecutionResult.Default;
 

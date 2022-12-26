@@ -1,5 +1,6 @@
 ﻿using System;
 using EternalFS.Commands.Diagnostics;
+using EternalFS.Commands.Extensions;
 using EternalFS.Library.Extensions;
 using EternalFS.Library.Filesystem;
 
@@ -23,11 +24,11 @@ public partial class StatCommand
 
         static void PrintEntryInfo(ref CommandExecutionContext context, EternalFileSystemEntry entry, string entryName)
         {
-            context.Writer.AppendLine($"Name: {entryName}");
-            context.Writer.Append($"Created at: {new DateTime(entry.CreatedAt)}");
+            context.Writer.Info($"Name: {entryName}");
+            context.Writer.Info($"Created at: {new DateTime(entry.CreatedAt)}");
 
             if (!entry.IsDirectory)
-                context.Writer.Append($"\r\nSize: {entry.Size}B");
+                context.Writer.Info($"\r\nSize: {entry.Size}B");
         }
     }
 }
