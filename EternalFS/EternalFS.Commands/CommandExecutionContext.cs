@@ -43,6 +43,6 @@ public ref struct CommandExecutionContext
 		if (Reader.OriginalSequence != default)
             Reader.Dispose();
 		
-        Writer.Flush();
+        Writer?.Flush();
     }
 }

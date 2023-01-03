@@ -6,15 +6,21 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+      <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EternalFS.Generator\EternalFS.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\EternalFS.Library\EternalFS.Library.csproj" />
+      <ProjectReference Include="..\EternalFS.Generator\EternalFS.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <ProjectReference Include="..\EternalFS.Library\EternalFS.Library.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+      <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+          <_Parameter1>EternalFS.Commands.Tests</_Parameter1>
+      </AssemblyAttribute>
+  </ItemGroup>
+
+    <ItemGroup>
     <Folder Include="IO\" />
     <Folder Include="Extensions\" />
     <Folder Include="Utils\" />

@@ -9,13 +9,13 @@ public static class CommandHelper
         where T : ICommand
         => T.Info;
 
-    public static void RunCommand(string command, ref CommandExecutionContext context)
+    public static CommandExecutionResult RunCommand(string command, ref CommandExecutionContext context)
     {
         CommandExecutionContext copy = context;
         context.Dispose();
         context = CommandExecutionContext.From(ref copy);
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(command));
-        CommandManager.ExecuteCommand(stream, ref context);
+        return CommandManager.ExecuteCommand(stream, ref context);
     }
 }

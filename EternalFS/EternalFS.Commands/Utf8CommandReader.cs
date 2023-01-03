@@ -74,11 +74,14 @@ public ref struct Utf8CommandReader
     private void FillNulls()
     {
         // treat nulls and spaces as if they are read already
-        for (int i = 0; i < _sequence.Length; i++)
+        for (int i = 0; i < OriginalSequence.Length; i++)
         {
             if (OriginalSequence[i] is (byte)'\0' or (byte)' ')
                 _sequence[i] = true;
         }
+
+        // ArrayPool may have given us more than needed
+        _sequence.AsSpan()[OriginalSequence.Length..].Fill(true);
     }
 
     private bool TryReadArgumentInternal(in ReadOnlySpan<byte> name, int initial, out CommandArgument argument)
@@ -147,9 +150,9 @@ public ref struct Utf8CommandReader
     {
         int end = initial;
 
-        while (end < sequence.Length)
+        while (end <= sequence.Length)
         {
-            byte current = sequence[end];
+            byte current = end < sequence.Length ? sequence[end] : (byte)0;
 
             if (current is (byte)' ' or (byte)'-' or 0 or (byte)'"')
             {
@@ -167,7 +170,7 @@ public ref struct Utf8CommandReader
                     _positionalIndex = end;
 
                 _sequence.AsSpan()[initial..end].Fill(true);
-                return true;
+                return end - initial > 0;
             }
 
             end++;
@@ -198,6 +201,7 @@ public ref struct Utf8CommandReader
 
     public void Dispose()
     {
+        _sequence.AsSpan().Fill(false);
         ArrayPool<bool>.Shared.Return(_sequence);
     }
 }

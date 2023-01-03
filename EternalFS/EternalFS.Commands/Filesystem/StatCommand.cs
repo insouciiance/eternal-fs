@@ -28,7 +28,7 @@ public partial class StatCommand
             context.Writer.Info($"Created at: {new DateTime(entry.CreatedAt)}");
 
             if (!entry.IsDirectory)
-                context.Writer.Info($"\r\nSize: {entry.Size}B");
+                context.Writer.Info($"Size: {entry.Size}B");
         }
     }
 }
