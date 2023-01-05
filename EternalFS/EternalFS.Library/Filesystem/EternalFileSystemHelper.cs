@@ -43,9 +43,14 @@ public static class EternalFileSystemHelper
 
         int clustersCount = fileSystem.ClustersCount;
 
-        for (ushort i = 0; i < clustersCount; i++)
+        for (uint i = 0; i < clustersCount; i++)
         {
-            entry = stream.MarshalReadStructure<EternalFileSystemFatEntry>();
+            byte byte1 = (byte)stream.ReadByte();
+            byte byte2 = (byte)stream.ReadByte();
+            byte byte3 = (byte)stream.ReadByte();
+            byte byte4 = (byte)stream.ReadByte();
+
+            entry = new(byte1, byte2, byte3, byte4);
 
             if (entry != EternalFileSystemMounter.EmptyCluster)
                 continue;
@@ -67,14 +72,14 @@ public static class EternalFileSystemHelper
         return (int)(size / (EternalFileSystemFatEntry.EntrySize + EternalFileSystemMounter.CLUSTER_SIZE_BYTES));
     }
 
-    public static int GetClusterOffset(long size, EternalFileSystemFatEntry entry)
+    public static long GetClusterOffset(long size, EternalFileSystemFatEntry entry)
     {
         return EternalFileSystemHeader.HeaderSize +
             GetClustersCount(size) * EternalFileSystemFatEntry.EntrySize +
             entry * EternalFileSystemMounter.CLUSTER_SIZE_BYTES;
     }
 
-    public static int GetFatEntryOffset(EternalFileSystemFatEntry entry)
+    public static long GetFatEntryOffset(EternalFileSystemFatEntry entry)
     {
         return EternalFileSystemHeader.HeaderSize +
             entry * EternalFileSystemFatEntry.EntrySize;

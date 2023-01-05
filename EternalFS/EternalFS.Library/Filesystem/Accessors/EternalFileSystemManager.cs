@@ -146,7 +146,7 @@ public class EternalFileSystemManager : AccessorPipelineElement
 
             while (fatRef != EternalFileSystemMounter.FatTerminator)
             {
-                int offset = EternalFileSystemHelper.GetFatEntryOffset(fatRef);
+                long offset = EternalFileSystemHelper.GetFatEntryOffset(fatRef);
 
                 stream.Seek(offset, SeekOrigin.Begin);
                 fatRef = stream.MarshalReadStructure<EternalFileSystemFatEntry>();

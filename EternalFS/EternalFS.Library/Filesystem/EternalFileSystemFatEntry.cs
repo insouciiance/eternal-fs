@@ -15,31 +15,43 @@ public readonly struct EternalFileSystemFatEntry
 
     public readonly byte Byte2;
 
-    public EternalFileSystemFatEntry(byte b1, byte b2)
+    public readonly byte Byte3;
+
+    public readonly byte Byte4;
+
+    public EternalFileSystemFatEntry(byte b1, byte b2, byte b3, byte b4)
     {
         Byte1 = b1;
         Byte2 = b2;
+        Byte3 = b3;
+        Byte4 = b4;
     }
 
-    public EternalFileSystemFatEntry(ushort @ushort)
+    public EternalFileSystemFatEntry(uint @uint)
     {
-        Byte1 = (byte)(@ushort & 0xFF00);
-        Byte2 = (byte)(@ushort & 0x00FF);
+        Byte1 = (byte)(@uint & 0xFF000000);
+        Byte2 = (byte)(@uint & 0x00FF0000);
+        Byte2 = (byte)(@uint & 0x0000FF00);
+        Byte2 = (byte)(@uint & 0x000000FF);
     }
 
-    public static implicit operator ushort(EternalFileSystemFatEntry entry)
+    public static implicit operator uint(EternalFileSystemFatEntry entry)
     {
         byte byte1 = entry.Byte1;
         byte byte2 = entry.Byte2;
+        byte byte3 = entry.Byte3;
+        byte byte4 = entry.Byte4;
 
-        return (ushort)((byte1 << 8) + byte2);
+        return (uint)((byte1 << 24) + (byte2 << 16) + (byte3 << 8) + byte4);
     }
 
-    public static implicit operator EternalFileSystemFatEntry(ushort entry)
+    public static implicit operator EternalFileSystemFatEntry(uint entry)
     {
-        byte byte1 = (byte)((entry & 0xFF00) >> 8);
-        byte byte2 = (byte)(entry & 0x00FF);
+        byte byte1 = (byte)((entry & 0xFF000000) >> 24);
+        byte byte2 = (byte)((entry & 0x00FF0000) >> 16);
+        byte byte3 = (byte)((entry & 0x0000FF00) >> 8);
+        byte byte4 = (byte)(entry & 0x000000FF);
 
-        return new(byte1, byte2);
+        return new(byte1, byte2, byte3, byte4);
     }
 }

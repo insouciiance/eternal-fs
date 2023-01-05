@@ -14,15 +14,15 @@ namespace EternalFS.Library.Filesystem;
 /// </remarks>
 public static class EternalFileSystemMounter
 {
-    public const int CLUSTER_SIZE_BYTES = 512;
+    public const int CLUSTER_SIZE_BYTES = 1 << 12;
 
     public const string ROOT_DIRECTORY_NAME = "ROOT";
 
-    public static readonly EternalFileSystemFatEntry RootDirectoryEntry = new(0);
+    public static readonly EternalFileSystemFatEntry RootDirectoryEntry = new(0x00, 0x00, 0x00, 0x00);
 
-    public static readonly EternalFileSystemFatEntry FatTerminator = new(0xFF, 0xFF);
+    public static readonly EternalFileSystemFatEntry FatTerminator = new(0xFF, 0xFF, 0xFF, 0xFF);
 
-    public static readonly EternalFileSystemFatEntry EmptyCluster = new(0x00, 0x00);
+    public static readonly EternalFileSystemFatEntry EmptyCluster = new(0x00, 0x00, 0x00, 0x00);
 
     public static void Mount<T>(IEternalFileSystemInitializer<T> initializer)
         where T : EternalFileSystem
