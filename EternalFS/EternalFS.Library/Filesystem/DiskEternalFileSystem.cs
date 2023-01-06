@@ -7,7 +7,7 @@ namespace EternalFS.Library.Filesystem;
 /// </summary>
 public class DiskEternalFileSystem : EternalFileSystem
 {
-    public const string EXTENSION = "efs";
+    public const string EXTENSION = "etfs";
 
     public string FileName { get; }
 
