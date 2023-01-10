@@ -16,11 +16,11 @@ public class DiskEternalFileSystem : EternalFileSystem
     {
         FileName = fileName;
 
-        if (!File.Exists(FileName))
-            throw new EternalFileSystemException(EternalFileSystemState.CantOpenDiskFS, FileName);
-
         if (!FileName.EndsWith($"{EXTENSION}"))
             FileName += $".{EXTENSION}";
+
+        if (!File.Exists(FileName))
+            throw new EternalFileSystemException(EternalFileSystemState.CantOpenDiskFS, FileName);
 
         Init();
     }
