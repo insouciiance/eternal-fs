@@ -21,7 +21,7 @@ public ref struct CommandExecutionContext
 
     public IOutputWriter Writer { get; internal set; } = null!;
 
-	public EternalFileSystemDirectory CurrentDirectory { get; init; } = new();
+	public EternalFileSystemDirectory CurrentDirectory { get; internal set; }
 
     public ServiceLocator ServiceLocator { get; init; } = new();
 

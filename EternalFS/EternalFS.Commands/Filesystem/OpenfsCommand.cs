@@ -15,6 +15,8 @@ public partial class OpenfsCommand
 
         string fileName = fileSpan.GetString();
 
+        context.CurrentDirectory ??= new();
+
         context.CurrentDirectory.Clear();
 
         DiskEternalFileSystem fs = new(fileName);

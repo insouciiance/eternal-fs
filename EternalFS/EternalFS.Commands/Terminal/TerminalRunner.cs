@@ -30,7 +30,10 @@ public class TerminalRunner
         {
             context = CommandExecutionContext.From(ref context);
 
-            string directoryString = string.Join("/", context.CurrentDirectory.Path);
+            string directoryString = context.CurrentDirectory is { } dir
+                ? string.Join("/", dir.Path)
+                : string.Empty;
+
             Console.Write(WRITER_PATH_OUTPUT_FORMAT, directoryString);
 
             string commandLine = Console.ReadLine()!;

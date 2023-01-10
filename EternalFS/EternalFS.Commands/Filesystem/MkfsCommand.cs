@@ -47,6 +47,8 @@ public partial class MkfsCommand
         else
             initializer = new VirtualEternalFileSystemInitializer(name, size);
 
+        context.CurrentDirectory ??= new();
+
         context.CurrentDirectory.Clear();
 
         EternalFileSystemMounter.Mount(initializer);
