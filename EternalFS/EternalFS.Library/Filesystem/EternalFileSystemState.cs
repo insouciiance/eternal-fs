@@ -34,8 +34,11 @@ public enum EternalFileSystemState
     [Map(@"A subentry with the name ""{0}"" already exists.")]
     SubEntryExists,
 
-    [Map(@"The file system is out of memory.")]
+    [Map("The file system is out of memory.")]
     OutOfMemory,
+
+    [Map(@"Can't open the file system ""{0}"".")]
+    CantOpenDiskFS,
 
 #if DEBUG
     [Map("{0}\n{1}")]

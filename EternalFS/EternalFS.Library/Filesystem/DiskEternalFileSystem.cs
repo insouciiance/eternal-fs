@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using EternalFS.Library.Diagnostics;
+using System.IO;
 
 namespace EternalFS.Library.Filesystem;
 
@@ -14,6 +15,9 @@ public class DiskEternalFileSystem : EternalFileSystem
     public DiskEternalFileSystem(string fileName)
     {
         FileName = fileName;
+
+        if (!File.Exists(FileName))
+            throw new EternalFileSystemException(EternalFileSystemState.CantOpenDiskFS, FileName);
 
         if (!FileName.EndsWith($"{EXTENSION}"))
             FileName += $".{EXTENSION}";
