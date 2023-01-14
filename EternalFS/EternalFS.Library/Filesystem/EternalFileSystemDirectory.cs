@@ -20,7 +20,7 @@ public class EternalFileSystemDirectory
 	public void Push(EternalFileSystemEntry subDirectory)
     {
         ReadOnlySpan<byte> subDirectoryName = subDirectory.SubEntryName;
-        _directoriesStack.Add(subDirectoryName.GetString());
+        _directoriesStack.Add(subDirectoryName.TrimEndNull().GetString());
 		_entriesStack.Add(subDirectory.FatEntryReference);
 	}
 
